@@ -1,1 +1,41 @@
+services:
+  mysql:
+    image: mysql:9.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'auth_db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./databases/auth:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  auth-service:
+    image: auth-service:latest
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/auth_db
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+
+networks:
+  backend:
+    driver: bridge
+
+
 
