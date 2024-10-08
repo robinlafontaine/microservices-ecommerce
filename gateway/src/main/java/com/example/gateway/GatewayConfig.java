@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.csrf.CsrfToken;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +20,9 @@ import java.util.Collections;
 public class GatewayConfig {
 
     private final AuthFilter authFilter;
+
+    @Autowired
+    private CsrfTokenRepository csrfTokenRepository;
 
     public GatewayConfig(AuthFilter authFilter) {
         this.authFilter = authFilter;
@@ -56,5 +60,18 @@ public class GatewayConfig {
         source.registerCorsConfiguration("/**", corsConfig);
 
         return new CorsWebFilter(source);
+    }
+
+    @Bean
+    public WebFilter csrfWebFilter() {
+        return (exchange, chain) -> {
+            Mono<CsrfToken> csrfToken = csrfTokenRepository.loadToken(exchange);
+            return csrfToken.flatMap(token -> {
+                ServerHttpRequest request = exchange.getRequest().mutate()
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getToken())
+                        .build();
+                return chain.filter(exchange.mutate().request(request).build());
+            });
+        };
     }
 }
