@@ -36,5 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
+## Services ##
+auth/
+
 ### Dabases ###
 databases/
