@@ -1,22 +1,22 @@
 services:
-  mysql:
-    image: mysql:9.0
-    restart: always
+  auth-postgres:
+    image: postgres:latest
     environment:
-      MYSQL_DATABASE: 'auth_db'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'password'
-      MYSQL_ROOT_PASSWORD: 'password'
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - '3306:3306'
-    volumes:
-      - ./databases/auth:/var/lib/mysql
+      - "5432:5432"
     networks:
       - backend
+    volumes:
+      - ./databases/auth/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/auth_init.sql:/docker-entrypoint-initdb.d/initdb.sql
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
+      test: [ "CMD-SHELL", "pg_isready --dbname=auth_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   auth-service:
     image: auth-service:latest
@@ -28,11 +28,47 @@ services:
     networks:
       - backend
     depends_on:
-      mysql:
+      auth-postgres:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/auth_db
-      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  payment-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5434"
+    networks:
+      - backend
+    volumes:
+      - ./databases/payment/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/payment_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=payment_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment-service:
+    image: payment-service:latest
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    ports:
+      - '8084:8084'
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-postgres:5434/payment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
 
 networks:
