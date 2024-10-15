@@ -1,6 +1,7 @@
 services:
-  auth-postgres:
-    image: postgres:latest
+  mysql:
+    image: mysql:9.0
+    restart: always
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
@@ -70,6 +71,22 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-postgres:5434/payment_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
+
+  gateway:
+    image: gateway:latest
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    depends_on:
+      - auth-service
+    environment:
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].ID=auth-service
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://auth-service:8082
+      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/authenticate
 
 networks:
   backend:
