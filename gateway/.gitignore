@@ -35,12 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-## Services ##
-auth/
-
-### Dabases ###
-!/databases/scripts/
-!/databases/scripts/**
-databases/*
-
