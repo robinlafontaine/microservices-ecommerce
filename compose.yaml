@@ -32,9 +32,9 @@ services:
       auth-postgres:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
 
   payment-postgres:
     image: postgres:latest
@@ -43,7 +43,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5434:5434"
+      - "5434:5432"
     networks:
       - backend
     volumes:
@@ -65,28 +65,29 @@ services:
     networks:
       - backend
     depends_on:
-      postgres:
+      payment-postgres:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-postgres:5434/payment_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
 
-  gateway:
-    image: gateway:latest
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    networks:
-      - backend
-    depends_on:
-      - auth-service
-    environment:
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].ID=auth-service
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://auth-service:8082
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/authenticate
+#  gateway:
+#    image: gateway:latest
+#    build:
+#      context: ./gateway
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - backend
+#    depends_on:
+#      - auth-service
+#    environment:
+#      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
+#      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
+#      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
 
 networks:
   backend:

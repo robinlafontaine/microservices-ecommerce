@@ -1,21 +1,32 @@
 package com.example.payment;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+@Setter
+@Getter
+@Entity
+public class Payment {
 
-class Payment {
-@Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-private String name;
-private String number;
-private String email;
-private String address;
-private int billValue;
-private int cardNumber;
-private String cardHolder;
-private String dateValue;
-private String cvc;
+    private Long orderId;
+
+    private BigDecimal amount;
+
+    private String paymentId;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
+
+    private LocalDateTime timestamp;
+
+    public Payment() {
+    }
+
 }
+
