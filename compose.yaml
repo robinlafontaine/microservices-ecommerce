@@ -18,6 +18,25 @@ services:
       timeout: 5s
       retries: 5
 
+  inventory-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5433"
+    networks:
+      - backend
+    volumes:
+      - ./databases/inventory/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/inventory_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=inventory_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-service:
     image: auth-service:latest
     build:
@@ -32,6 +51,23 @@ services:
         condition: service_healthy
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  inventory-service:
+    image: inventory-service:latest
+    build:
+      context: ./inventory
+      dockerfile: Dockerfile
+    ports:
+      - '8083:8083'
+    networks:
+      - backend
+    depends_on:
+      inventory-postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-postgres:5433/inventory_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
 
@@ -54,6 +90,3 @@ services:
 networks:
   backend:
     driver: bridge
-
-
-
