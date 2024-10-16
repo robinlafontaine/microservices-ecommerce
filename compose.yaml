@@ -1,6 +1,7 @@
 services:
-  postgres:
+  auth-postgres:
     image: postgres:latest
+    restart: always
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
@@ -75,21 +76,58 @@ services:
       - MINIO_SECRET_KEY=minioadmin123
       - MINIO_BUCKET=product-images
 
-  gateway:
-    image: gateway:latest
+  payment-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    networks:
+      - backend
+    volumes:
+      - ./databases/payment/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/payment_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=payment_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment-service:
+    image: payment-service:latest
     build:
-      context: ./gateway
+      context: ./payment
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - '8084:8084'
     networks:
       - backend
     depends_on:
-      - auth-service
+      payment-postgres:
+        condition: service_healthy
     environment:
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].ID=auth-service
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].URI=http://auth-service:8082
-      - SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]=Path=/authenticate
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+
+#  gateway:
+#    image: gateway:latest
+#    build:
+#      context: ./gateway
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - backend
+#    depends_on:
+#      - auth-service
+#    environment:
+#      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
+#      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
+#      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
 
   minio:
     image: minio/minio:latest
@@ -116,3 +154,6 @@ services:
 networks:
   backend:
     driver: bridge
+
+
+
