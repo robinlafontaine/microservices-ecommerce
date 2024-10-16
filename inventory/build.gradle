@@ -20,7 +20,7 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'jakarta.annotation:jakarta.annotation-api:3.0.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'io.minio:minio:8.4.3'

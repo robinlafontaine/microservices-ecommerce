@@ -18,7 +18,4 @@ public interface ProductDataRepository extends JpaRepository<ProductData, Long> 
 
     public List<ProductData> findByPrice(BigDecimal price);
 
-    public List<ProductData> findByPriceLessThan(BigDecimal price);
-
-    public List<ProductData> findByPriceMoreThan(BigDecimal price);
 }

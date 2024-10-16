@@ -39,7 +39,7 @@ public class InventoryApplication {
                 ProductData testProduct = new ProductData();
                 testProduct.setProductName("test_product");
                 testProduct.setDescription("test_description");
-                testProduct.setImageURL(minioService.uploadImage(FileUtils.convertFileToMultipartFile("images/test_image.jpg")));
+                testProduct.setImageUrl(minioService.uploadImage(FileUtils.convertFileToMultipartFile("../images/test_image.jpg")));
                 testProduct.setPrice(BigDecimal.valueOf(0));
                 testProduct.setCategoryId(0);
                 testProduct.setStockQuantity(0);

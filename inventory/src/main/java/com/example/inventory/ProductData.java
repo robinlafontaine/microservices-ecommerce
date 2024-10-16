@@ -28,11 +28,10 @@ public class ProductData implements Serializable {
 
     private String description;
 
-    private String imageURL;
+    private String imageUrl;
 
     private BigDecimal price;
 
-    @Enumerated(EnumType.STRING)
     private int categoryId;
 
     private int stockQuantity;

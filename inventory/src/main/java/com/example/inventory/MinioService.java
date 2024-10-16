@@ -1,9 +1,6 @@
 package com.example.inventory;
 
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import io.minio.errors.MinioException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,6 +28,7 @@ public class MinioService {
 
     private MinioClient minioClient;
 
+
     @PostConstruct
     public void initializeMinio() {
         try {
@@ -42,6 +40,9 @@ public class MinioService {
             boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!bucketExists) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+                String policyJson = "{\"Version\": \"2012-10-17\",\"Statement\": [{\"Effect\": \"Allow\",\"Principal\": \"*\",\"Action\": \"s3:GetObject\",\"Resource\": \"arn:aws:s3:::product-images/*\"}]}";
+                minioClient.setBucketPolicy(
+                        SetBucketPolicyArgs.builder().bucket("product-images").config(policyJson).build());
                 System.out.println("Bucket '" + bucketName + "' created successfully.");
             } else {
                 System.out.println("Bucket '" + bucketName + "' already exists.");
@@ -62,7 +63,7 @@ public class MinioService {
                         .contentType(file.getContentType())
                         .build()
         );
-        return minioUrl + "/" + bucketName + "/" + fileName;
+        return "http://localhost:9000/" + bucketName + "/" + fileName;
     }
 }
 
