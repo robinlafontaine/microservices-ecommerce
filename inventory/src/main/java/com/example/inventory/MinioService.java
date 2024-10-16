@@ -39,10 +39,8 @@ public class MinioService {
                     .credentials(accessKey, secretKey)
                     .build();
 
-            // Check if the bucket exists
             boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!bucketExists) {
-                // Create the bucket if it does not exist
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
                 System.out.println("Bucket '" + bucketName + "' created successfully.");
             } else {

@@ -1,4 +1,62 @@
 services:
+  auth-service:
+    image: auth-service:latest
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    ports:
+      - '8082:8082'
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  inventory-service:
+    image: inventory-service:latest
+    build:
+      context: ./inventory
+      dockerfile: Dockerfile
+    ports:
+      - '8083:8083'
+    networks:
+      - backend
+    volumes:
+      - ./images:/images
+    depends_on:
+      inventory-postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-postgres:5433/inventory_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET=product-images
+
+  payment-service:
+    image: payment-service:latest
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    ports:
+      - '8084:8084'
+    networks:
+      - backend
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+
   auth-postgres:
     image: postgres:latest
     restart: always
@@ -26,7 +84,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5433:5433"
+      - "5433:5432"
     networks:
       - backend
     volumes:
@@ -37,44 +95,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  auth-service:
-    image: auth-service:latest
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
-    ports:
-      - '8082:8082'
-    networks:
-      - backend
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-
-  inventory-service:
-    image: inventory-service:latest
-    build:
-      context: ./inventory
-      dockerfile: Dockerfile
-    ports:
-      - '8083:8083'
-    networks:
-      - backend
-    depends_on:
-      inventory-postgres:
-        condition: service_healthy
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-postgres:5433/inventory_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - MINIO_URL=http://minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin123
-      - MINIO_BUCKET=product-images
 
   payment-postgres:
     image: postgres:latest
@@ -94,24 +114,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  payment-service:
-    image: payment-service:latest
-    build:
-      context: ./payment
-      dockerfile: Dockerfile
-    ports:
-      - '8084:8084'
-    networks:
-      - backend
-    depends_on:
-      payment-postgres:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
 
 #  gateway:
 #    image: gateway:latest

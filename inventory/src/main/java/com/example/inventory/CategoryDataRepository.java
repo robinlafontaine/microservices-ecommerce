@@ -9,7 +9,7 @@ import java.util.List;
  * @author Bastien Ubassy
  */
 @Repository
-public interface CategoryDataRepository extends JpaRepository<UserData, Long> {
+public interface CategoryDataRepository extends JpaRepository<CategoryData, Long> {
 
     public List<CategoryData> findByCategoryName(String categoryName);
 }

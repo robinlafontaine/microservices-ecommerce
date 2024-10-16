@@ -39,3 +39,6 @@ out/
 ### Dabases ###
 databases/*
 !/databases/scripts/*
+
+### Minio ###
+minio/*
