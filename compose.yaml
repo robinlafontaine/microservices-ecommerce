@@ -12,7 +12,7 @@ services:
       auth-postgres:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-postgres:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
 
@@ -58,6 +58,25 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+
+  order-service:
+    image: order-service:latest
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    ports:
+      - '8085:8085'
+    networks:
+      - backend
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-postgres:5432/order_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+      PAYMENT_SERVICE_URL: http://payment-service:8084
 
   auth-postgres:
     image: postgres:latest
@@ -112,6 +131,25 @@ services:
       - ./databases/scripts/payment_init.sql:/docker-entrypoint-initdb.d/initdb.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready --dbname=payment_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  order-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    networks:
+      - backend
+    volumes:
+      - ./databases/order/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/order_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=order_db --username=postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -1,4 +1,4 @@
-CREATE TABLE Payment (
+CREATE TABLE payment (
      id SERIAL PRIMARY KEY,
      order_id BIGINT NOT NULL,
      amount DECIMAL(19, 2) NOT NULL,
