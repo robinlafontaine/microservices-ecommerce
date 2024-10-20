@@ -12,10 +12,12 @@ import java.util.List;
 @Repository
 public interface ProductDataRepository extends JpaRepository<ProductData, Long> {
 
-    public List<ProductData> findByProductName(String productName);
+    // Read
+    List<ProductData> findByProductName(String productName);
 
-    public List<ProductData> findByCategoryId(int categoryId);
+    List<ProductData> findByCategoryId(Long categoryId);
 
-    public List<ProductData> findByPrice(BigDecimal price);
+    List<ProductData> findByPrice(BigDecimal price);
 
+    List<ProductData> findByPriceLessThan(BigDecimal price);
 }

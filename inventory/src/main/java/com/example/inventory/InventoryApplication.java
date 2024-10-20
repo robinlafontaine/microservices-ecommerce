@@ -41,7 +41,7 @@ public class InventoryApplication {
                 testProduct.setDescription("test_description");
                 testProduct.setImageUrl(minioService.uploadImage(FileUtils.convertFileToMultipartFile("../images/test_image.jpg")));
                 testProduct.setPrice(BigDecimal.valueOf(0));
-                testProduct.setCategoryId(0);
+                testProduct.setCategoryId(0L);
                 testProduct.setStockQuantity(0);
                 productDataRepository.save(testProduct);
                 System.out.println("Test product created.");

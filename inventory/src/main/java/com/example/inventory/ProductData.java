@@ -22,7 +22,7 @@ public class ProductData implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     private String productName;
 
@@ -32,7 +32,7 @@ public class ProductData implements Serializable {
 
     private BigDecimal price;
 
-    private int categoryId;
+    private Long categoryId;
 
     private int stockQuantity;
 
