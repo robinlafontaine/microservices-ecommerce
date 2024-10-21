@@ -1,4 +1,4 @@
-package com.learnandphish.order;
+package com.learnandphish.order.orderitem;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;

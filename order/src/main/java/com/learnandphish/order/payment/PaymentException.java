@@ -1,4 +1,4 @@
-package com.learnandphish.order;
+package com.learnandphish.order.payment;
 
 public class PaymentException extends RuntimeException {
     public PaymentException(String message) {

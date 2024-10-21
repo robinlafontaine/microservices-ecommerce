@@ -1,4 +1,4 @@
-package com.learnandphish.order;
+package com.learnandphish.order.inventory;
 
 public class InventoryException extends RuntimeException {
     public InventoryException(String message) {

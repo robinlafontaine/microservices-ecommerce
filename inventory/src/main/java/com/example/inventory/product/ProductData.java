@@ -1,4 +1,4 @@
-package com.example.inventory;
+package com.example.inventory.product;
 
 import jakarta.persistence.*;
 import lombok.Getter;

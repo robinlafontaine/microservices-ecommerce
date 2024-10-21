@@ -1,5 +1,11 @@
 package com.learnandphish.order;
 
+import com.learnandphish.order.inventory.InventoryClient;
+import com.learnandphish.order.inventory.InventoryException;
+import com.learnandphish.order.payment.PaymentClient;
+import com.learnandphish.order.payment.PaymentException;
+import com.learnandphish.order.payment.PaymentResponse;
+import com.learnandphish.order.payment.PaymentStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

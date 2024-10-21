@@ -1,5 +1,8 @@
 package com.example.inventory;
 
+import com.example.inventory.category.CategoryDataRepository;
+import com.example.inventory.product.ProductData;
+import com.example.inventory.product.ProductDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

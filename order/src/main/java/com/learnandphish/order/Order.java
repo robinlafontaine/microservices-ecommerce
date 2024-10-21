@@ -1,5 +1,6 @@
 package com.learnandphish.order;
 
+import com.learnandphish.order.orderitem.OrderItem;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

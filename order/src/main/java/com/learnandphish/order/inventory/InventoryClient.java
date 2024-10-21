@@ -1,5 +1,6 @@
-package com.learnandphish.order;
+package com.learnandphish.order.inventory;
 
+import com.learnandphish.order.orderitem.OrderItem;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

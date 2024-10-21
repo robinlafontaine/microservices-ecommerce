@@ -1,4 +1,4 @@
-package com.example.inventory;
+package com.example.inventory.category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

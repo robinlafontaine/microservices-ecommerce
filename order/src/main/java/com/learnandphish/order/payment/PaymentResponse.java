@@ -1,4 +1,4 @@
-package com.learnandphish.order;
+package com.learnandphish.order.payment;
 
 import lombok.Getter;
 import lombok.Setter;

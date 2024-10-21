@@ -15,8 +15,7 @@ import java.math.BigDecimal;
 @Data
 public class PaymentRequestDTO {
 
-    @Setter
-    @Getter
+    @NotNull(message = "Order ID is required")
     private Long orderId;
 
     @NotNull(message = "Amount is required")
