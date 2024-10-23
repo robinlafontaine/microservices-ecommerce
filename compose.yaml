@@ -1,29 +1,11 @@
-version: '3.8'
-
 services:
-  traefik:
-    image: traefik:v2.10
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - backend
-
   gateway:
     image: gateway:latest
     build:
       context: ./gateway
       dockerfile: Dockerfile
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gateway.rule=Host(`localhost`)"
-      - "traefik.http.services.gateway.loadbalancer.server.port=8080"
+    ports:
+      - "8080:8080"
     networks:
       - backend
     depends_on:
@@ -38,17 +20,15 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.auth-service.rule=Host(`localhost`)"
-      - "traefik.http.services.auth-service.loadbalancer.server.port=8082"
+    ports:
+      - '8082:8082'
     networks:
       - backend
     depends_on:
       auth-postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
@@ -58,10 +38,8 @@ services:
     build:
       context: ./inventory
       dockerfile: Dockerfile
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.inventory-service.rule=Host(`localhost`)"
-      - "traefik.http.services.inventory-service.loadbalancer.server.port=8083"
+    ports:
+      - '8083:8083'
     networks:
       - backend
     volumes:
@@ -85,10 +63,8 @@ services:
     build:
       context: ./payment
       dockerfile: Dockerfile
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.payment-service.rule=Host(`localhost`)"
-      - "traefik.http.services.payment-service.loadbalancer.server.port=8084"
+    ports:
+      - '8084:8084'
     networks:
       - backend
     depends_on:
@@ -99,6 +75,26 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
       STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+
+  order-service:
+    image: order-service:latest
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    ports:
+      - '8085:8085'
+    networks:
+      - backend
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-postgres:5432/order_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+      PAYMENT_SERVICE_URL: http://payment-service:8084
 
   auth-postgres:
     image: postgres:latest
@@ -157,6 +153,25 @@ services:
       timeout: 5s
       retries: 5
 
+  order-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    networks:
+      - backend
+    volumes:
+      - ./databases/order/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/order_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=order_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -179,6 +194,24 @@ services:
       timeout: 20s
       retries: 3
 
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    restart: always
+    ports:
+      - "9002:9000"
+    networks:
+      - backend
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+volumes:
+    portainer_data:
+
 networks:
   backend:
     driver: bridge
+
+
+

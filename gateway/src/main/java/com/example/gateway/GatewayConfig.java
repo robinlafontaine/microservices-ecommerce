@@ -41,8 +41,14 @@ public class GatewayConfig {
                 .route("payment-service", r -> r.path("/api/payments/**")
                         .filters(f -> f.filter(authFilter))
                         .uri("http://payment-service:8084"))
+                .route("order-service", r -> r.path("/api/orders/**")
+                        .filters(f -> f.filter(authFilter))
+                        .uri("http://order-service:8085"))
                 .route("minio", r -> r.path("/product-images/**")
                         .uri("http://minio:9000"))
+                .route("portainer", r -> r.path("/portainer/**")
+                        .filters(f -> f.filter(authFilter))
+                        .uri("http://portainer:9002"))
                 .build();
     }
 

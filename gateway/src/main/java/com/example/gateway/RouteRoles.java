@@ -22,7 +22,9 @@ public class RouteRoles {
         Map.entry("/api/inventory/products/**", List.of("ADMIN")),
         Map.entry("/api/inventory/category/search", List.of("USER", "ADMIN")),
         Map.entry("/api/inventory/category/**", List.of("ADMIN")),
-        Map.entry("/api/payments/**", List.of("USER", "ADMIN"))
+        Map.entry("/api/payments/**", List.of("USER", "ADMIN")),
+        Map.entry("/portainer/**", List.of("ADMIN")),
+        Map.entry("/api/orders/**", List.of("USER", "ADMIN"))
 );
 
     public static List<String> requiredRolesForPath(String path) {
