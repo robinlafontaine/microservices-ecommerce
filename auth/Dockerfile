@@ -18,9 +18,9 @@ RUN mkdir /keys && chown app-user:app-group /keys && chmod 700 /keys
 
 WORKDIR /app
 
-COPY --from=build --chown=app-user:app-group /app/build/libs/authentication-0.0.1-SNAPSHOT.jar authentication.jar
+COPY --from=build --chown=app-user:app-group /app/build/libs/auth-0.0.1-SNAPSHOT.jar auth.jar
 
 EXPOSE 8082
 USER app-user
 
-CMD ["java", "-jar", "/app/authentication.jar"]
+CMD ["java", "-jar", "/app/auth.jar"]

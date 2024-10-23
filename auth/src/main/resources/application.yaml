@@ -2,18 +2,9 @@ server:
   port: 8088
 
 spring:
-  application:
-    name: authentication
-
-  # PostgreSQL Database configuration
-  datasource:
-    url: jdbc:postgresql://localhost:5432/authentication_db
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: password
   jpa:
     hibernate:
-      ddl-auto: update # Adjust to 'validate', 'create', or 'none'
+      ddl-auto: update
     show-sql: true
 
 springdoc:
