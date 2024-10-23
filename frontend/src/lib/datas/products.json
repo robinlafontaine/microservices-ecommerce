@@ -1,0 +1,18 @@
+{
+	"products": [
+		{
+			"id": "1",
+			"name": "Adibou",
+			"img": "1_adibou.webp",
+			"description": "Adibou is a video game series created by Coktel Vision. It is intended for children aged 4 to 8 years. The series is named after its main character, Adibou, a small child.",
+			"price": "10"
+		},
+		{
+			"id": "2",
+			"name": "Chilly's water bottle",
+			"img": "2_chillys_water_bottle.webp",
+			"description": "Chilly's water bottles are reusable water bottles that can keep your drinks cold for up to 24 hours and hot for up to 12 hours.",
+			"price": "20"
+		}
+	]
+}
