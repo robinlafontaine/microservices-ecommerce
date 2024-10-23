@@ -1,7 +1,66 @@
 services:
+  auth-service:
+    image: auth-service:latest
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    ports:
+      - '8082:8082'
+    networks:
+      - backend
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+  inventory-service:
+    image: inventory-service:latest
+    build:
+      context: ./inventory
+      dockerfile: Dockerfile
+    ports:
+      - '8083:8083'
+    networks:
+      - backend
+    volumes:
+      - ./images:/images
+    depends_on:
+      inventory-postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-postgres:5432/inventory_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET=product-images
+
+  payment-service:
+    image: payment-service:latest
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    ports:
+      - '8084:8084'
+    networks:
+      - backend
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+
   auth-postgres:
     image: postgres:latest
-    restart: always
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
@@ -19,22 +78,24 @@ services:
       timeout: 5s
       retries: 5
 
-  auth-service:
-    image: auth-service:latest
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
+  inventory-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - '8082:8082'
+      - "5433:5432"
     networks:
       - backend
-    depends_on:
-      auth-postgres:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
+    volumes:
+      - ./databases/inventory/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/inventory_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=inventory_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   payment-postgres:
     image: postgres:latest
@@ -55,24 +116,6 @@ services:
       timeout: 5s
       retries: 5
 
-  payment-service:
-    image: payment-service:latest
-    build:
-      context: ./payment
-      dockerfile: Dockerfile
-    ports:
-      - '8084:8084'
-    networks:
-      - backend
-    depends_on:
-      payment-postgres:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
-
 #  gateway:
 #    image: gateway:latest
 #    build:
@@ -88,6 +131,28 @@ services:
 #      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
 #      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
 #      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_DEFAULT_BUCKETS: image_bucket
+    command: server --address ':9000' --console-address ':9001' /data
+    ports:
+      - '9000:9000'   # API
+      - '9001:9001'   # Console
+    volumes:
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://minio:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
 networks:
   backend:

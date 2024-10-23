@@ -35,10 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### Dabases ###
-databases/*
-!/databases/scripts/*
-
-### Minio ###
-minio/*
