@@ -116,21 +116,21 @@ services:
       timeout: 5s
       retries: 5
 
-#  gateway:
-#    image: gateway:latest
-#    build:
-#      context: ./gateway
-#      dockerfile: Dockerfile
-#    ports:
-#      - "8080:8080"
-#    networks:
-#      - backend
-#    depends_on:
-#      - auth-service
-#    environment:
-#      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
-#      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
-#      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
+  gateway:
+    image: gateway:latest
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    depends_on:
+      - auth-service
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
+      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
+      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
 
   minio:
     image: minio/minio:latest
@@ -154,18 +154,7 @@ services:
       timeout: 20s
       retries: 3
 
-  frontend:
-    image: frontend:latest
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    user: "node"
-    environment:
-      NODE_ENV: production
-    ports:
-      - '3000:3000'
-    networks:
-      - backend
+
 
 networks:
   backend:
