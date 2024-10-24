@@ -46,9 +46,6 @@ public class GatewayConfig {
                         .uri("http://order-service:8085"))
                 .route("minio", r -> r.path("/product-images/**")
                         .uri("http://minio:9000"))
-                .route("portainer", r -> r.path("/portainer/**")
-                        .filters(f -> f.filter(authFilter))
-                        .uri("http://portainer:9002"))
                 .build();
     }
 
