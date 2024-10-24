@@ -18,11 +18,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 @RestController
+@RequestMapping("/auth")
 public class AuthenticationController {
 
     @Autowired
@@ -171,6 +175,39 @@ public class AuthenticationController {
         if (password.length() < 8) return false;
         if (!password.matches(".*[A-Z].*")) return false; // At least one uppercase letter
         return password.matches(".*\\d.*");   // At least one digit
+    }
+
+    @PostMapping("validate")
+    public ResponseEntity<?> validateToken(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestParam("X-Requested-Endpoint") String endpoint) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        String userEmail;
+        String userRole;
+
+        try {
+            userEmail = jwtUtil.extractEmail(token);
+            userRole = jwtUtil.extractClaim(token, claims -> claims.get("role", String.class));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+
+        if (endpoint == null || endpoint.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid endpoint");
+        }
+
+        List<String> requiredRoles = RouteRoles.requiredRolesForPath(endpoint);
+
+        if (RouteRoles.hasRequiredRole(userRole, requiredRoles)) {
+            return ResponseEntity.ok("Access granted");
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
     }
 }
 

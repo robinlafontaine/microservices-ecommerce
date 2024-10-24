@@ -1,8 +1,7 @@
-package com.example.gateway;
+package com.example.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
 
@@ -11,19 +10,19 @@ public class RouteRoles {
     private static final Logger logger = LoggerFactory.getLogger(RouteRoles.class);
 
     private static final Map<String, List<String>> routeRoleMap = Map.ofEntries(
-        Map.entry("/admin/**", List.of("ADMIN")),
-        Map.entry("/user/**", List.of("USER", "ADMIN")),
-        Map.entry("/export-users", List.of("ADMIN")),
-        Map.entry("/change-password", List.of("USER", "ADMIN")),
-        Map.entry("/test-admin", List.of("ADMIN")),
-        Map.entry("/test-user", List.of("USER", "ADMIN")),
-        Map.entry("/test-both", List.of("USER", "ADMIN")),
-        Map.entry("/api/inventory/products/search", List.of("USER", "ADMIN")),
-        Map.entry("/api/inventory/products/**", List.of("ADMIN")),
-        Map.entry("/api/inventory/category/search", List.of("USER", "ADMIN")),
-        Map.entry("/api/inventory/category/**", List.of("ADMIN")),
-        Map.entry("/api/payments/**", List.of("USER", "ADMIN")),
-        Map.entry("/api/orders/**", List.of("USER", "ADMIN"))
+        Map.entry("/auth/admin/**", List.of("ADMIN")),
+        Map.entry("/auth/user/**", List.of("USER", "ADMIN")),
+        Map.entry("/auth/export-users", List.of("ADMIN")),
+        Map.entry("/auth/change-password", List.of("USER", "ADMIN")),
+        Map.entry("auth/test-admin", List.of("ADMIN")),
+        Map.entry("/auth/test-user", List.of("USER", "ADMIN")),
+        Map.entry("/auth/test-both", List.of("USER", "ADMIN")),
+        Map.entry("/inventory/products/search", List.of("USER", "ADMIN")),
+        Map.entry("/inventory/products/**", List.of("ADMIN")),
+        Map.entry("/inventory/category/search", List.of("USER", "ADMIN")),
+        Map.entry("/inventory/category/**", List.of("ADMIN")),
+        Map.entry("/payments/**", List.of("USER", "ADMIN")),
+        Map.entry("/orders/**", List.of("USER", "ADMIN"))
 );
 
     public static List<String> requiredRolesForPath(String path) {

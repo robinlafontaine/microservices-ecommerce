@@ -117,4 +117,5 @@ public class JWTUtil {
     public PublicKey getPublicKey() {
         return keyPair.getPublic();
     }
+
 }

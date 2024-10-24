@@ -1,19 +1,17 @@
 services:
-  gateway:
-    image: gateway:latest
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8080"
+      - "--tracing.zipkin.httpEndpoint=http://zipkin:9411/api/v2/spans"
+      - "--accessLog=true"
     ports:
       - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - backend
-    depends_on:
-      - auth-service
-    environment:
-      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
-      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
-      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
 
   auth-service:
     image: auth-service:latest
@@ -25,11 +23,26 @@ services:
     depends_on:
       auth-postgres:
         condition: service_healthy
+      zipkin:
+        condition: service_healthy
     environment:
+      SERVER_PORT: 8082
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.unprotected.rule=PathPrefix(`/auth/authenticate`)"
+      - "traefik.http.services.unprotected.loadbalancer.server.port=8082"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/auth/validate`)"
+      - "traefik.http.services.auth.loadbalancer.server.port=8082"
+      - "traefik.http.middlewares.auth.forwardauth.address=http://auth-service/auth/validate"
+      - "traefik.http.middlewares.auth.forwardauth.trustforwardheader=true"
+      - "traefik.http.middlewares.auth.forwardauth.authResponseHeaders=X-Auth-User"
 
   inventory-service:
     image: inventory-service:latest
@@ -46,13 +59,22 @@ services:
       minio:
         condition: service_healthy
     environment:
+      SERVER_PORT: 8083
       SPRING_DATASOURCE_URL: jdbc:postgresql://inventory-postgres:5432/inventory_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
       MINIO_URL: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
       MINIO_BUCKET: product-images
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inventory.entrypoints=web"
+      - "traefik.http.routers.inventory.rule=PathPrefix(`/inventory`)"
+      - "traefik.http.services.inventory.loadbalancer.server.port=8083"
+      - "traefik.http.routers.inventory.middlewares=auth"
 
   payment-service:
     image: payment-service:latest
@@ -65,10 +87,19 @@ services:
       payment-postgres:
         condition: service_healthy
     environment:
+      SERVER_PORT: 8084
       SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
       STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payment.entrypoints=web"
+      - "traefik.http.routers.payment.rule=PathPrefix(`/payments`)"
+      - "traefik.http.services.payment.loadbalancer.server.port=8084"
+      - "traefik.http.routers.payment.middlewares=auth"
 
   order-service:
     image: order-service:latest
@@ -81,12 +112,21 @@ services:
       order-postgres:
         condition: service_healthy
     environment:
+      SERVER_PORT: 8085
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_DATASOURCE_URL: jdbc:postgresql://order-postgres:5432/order_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
       INVENTORY_SERVICE_URL: http://inventory-service:8083
       PAYMENT_SERVICE_URL: http://payment-service:8084
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.order.entrypoints=web"
+      - "traefik.http.routers.order.rule=PathPrefix(`/orders`)"
+      - "traefik.http.services.order.loadbalancer.server.port=8085"
+      - "traefik.http.routers.order.middlewares=auth"
 
   auth-postgres:
     image: postgres:latest
@@ -178,17 +218,12 @@ services:
       timeout: 20s
       retries: 3
 
-  portainer:
-    image: portainer/portainer-ce
-    container_name: portainer
-    restart: always
+  zipkin:
+    image: openzipkin/zipkin
     ports:
-      - "9002:9000"
+      - "9411:9411"
     networks:
-      - backend
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
+        - backend
 
 volumes:
     portainer_data:
