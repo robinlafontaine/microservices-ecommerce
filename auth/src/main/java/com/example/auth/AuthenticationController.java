@@ -2,6 +2,8 @@ package com.example.auth;
 
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -18,9 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,6 +28,8 @@ import org.springframework.http.MediaType;
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -56,6 +58,7 @@ public class AuthenticationController {
     @PostMapping("/authenticate")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) {
         try {
+            logger.info("Authenticating user: {}", authenticationRequest.getEmail());
             authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
             final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getEmail());
             final String token = jwtUtil.generateToken(userDetails);
@@ -177,31 +180,31 @@ public class AuthenticationController {
         return password.matches(".*\\d.*");   // At least one digit
     }
 
-    @PostMapping("validate")
+    @GetMapping("/validate")
     public ResponseEntity<?> validateToken(
         @RequestHeader("Authorization") String authHeader,
-        @RequestParam("X-Requested-Endpoint") String endpoint) {
+        @RequestHeader("X-Forwarded-Uri") String requestedEndpoint) {
+
+        logger.info("Validating token for endpoint: {}", requestedEndpoint);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Authorization header");
         }
 
         String token = authHeader.substring(7);
-        String userEmail;
         String userRole;
 
         try {
-            userEmail = jwtUtil.extractEmail(token);
             userRole = jwtUtil.extractClaim(token, claims -> claims.get("role", String.class));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        if (endpoint == null || endpoint.isEmpty()) {
+        if (requestedEndpoint == null || requestedEndpoint.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid endpoint");
         }
 
-        List<String> requiredRoles = RouteRoles.requiredRolesForPath(endpoint);
+        List<String> requiredRoles = RouteRoles.requiredRolesForPath(requestedEndpoint);
 
         if (RouteRoles.hasRequiredRole(userRole, requiredRoles)) {
             return ResponseEntity.ok("Access granted");

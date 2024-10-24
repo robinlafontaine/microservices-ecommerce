@@ -6,6 +6,7 @@ services:
       - "--entrypoints.web.address=:8080"
       - "--tracing.zipkin.httpEndpoint=http://zipkin:9411/api/v2/spans"
       - "--accessLog=true"
+      - "--log.level=DEBUG"
     ports:
       - "8080:8080"
     volumes:
@@ -20,6 +21,8 @@ services:
       dockerfile: Dockerfile
     networks:
       - backend
+    ports:
+        - "8082:8082"
     depends_on:
       auth-postgres:
         condition: service_healthy
@@ -35,14 +38,27 @@ services:
       SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
 
     labels:
+      # Enable Traefik for the auth-service
       - "traefik.enable=true"
-      - "traefik.http.routers.unprotected.rule=PathPrefix(`/auth/authenticate`)"
+
+      # Router for public endpoint (/auth/authenticate)
+      - "traefik.http.routers.unprotected.rule=Path(`/auth/authenticate`)"
+      - "traefik.http.routers.unprotected.entrypoints=web"
+      - "traefik.http.routers.unprotected.service=unprotected"
       - "traefik.http.services.unprotected.loadbalancer.server.port=8082"
-      - "traefik.http.routers.auth.rule=PathPrefix(`/auth/validate`)"
+      - "traefik.http.routers.unprotected.middlewares="
+
+      # Router for secured endpoints (/auth/validate and other protected routes)
+      - "traefik.http.routers.auth.rule=PathPrefix(`/auth`)"
+      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.routers.auth.service=auth"
       - "traefik.http.services.auth.loadbalancer.server.port=8082"
-      - "traefik.http.middlewares.auth.forwardauth.address=http://auth-service/auth/validate"
-      - "traefik.http.middlewares.auth.forwardauth.trustforwardheader=true"
-      - "traefik.http.middlewares.auth.forwardauth.authResponseHeaders=X-Auth-User"
+      - "traefik.http.routers.auth.middlewares=jwt-auth"
+
+      # Middleware for JWT validation
+      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
 
   inventory-service:
     image: inventory-service:latest
@@ -74,7 +90,12 @@ services:
       - "traefik.http.routers.inventory.entrypoints=web"
       - "traefik.http.routers.inventory.rule=PathPrefix(`/inventory`)"
       - "traefik.http.services.inventory.loadbalancer.server.port=8083"
-      - "traefik.http.routers.inventory.middlewares=auth"
+      - "traefik.http.routers.inventory.middlewares=jwt-auth"
+
+      # Middleware for JWT validation
+      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
 
   payment-service:
     image: payment-service:latest
@@ -99,7 +120,12 @@ services:
       - "traefik.http.routers.payment.entrypoints=web"
       - "traefik.http.routers.payment.rule=PathPrefix(`/payments`)"
       - "traefik.http.services.payment.loadbalancer.server.port=8084"
-      - "traefik.http.routers.payment.middlewares=auth"
+      - "traefik.http.routers.payment.middlewares=jwt-auth"
+
+      # Middleware for JWT validation
+      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
 
   order-service:
     image: order-service:latest
@@ -126,7 +152,12 @@ services:
       - "traefik.http.routers.order.entrypoints=web"
       - "traefik.http.routers.order.rule=PathPrefix(`/orders`)"
       - "traefik.http.services.order.loadbalancer.server.port=8085"
-      - "traefik.http.routers.order.middlewares=auth"
+      - "traefik.http.routers.order.middlewares=jwt-auth"
+
+      # Middleware for JWT validation
+      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
+      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
 
   auth-postgres:
     image: postgres:latest
