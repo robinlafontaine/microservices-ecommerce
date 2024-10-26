@@ -40,7 +40,7 @@ public class MinioService {
             boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!bucketExists) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-                String policyJson = "{\"Version\": \"2012-10-17\",\"Statement\": [{\"Effect\": \"Allow\",\"Principal\": \"*\",\"Action\": \"s3:GetObject\",\"Resource\": \"arn:aws:s3:::product-images/*\"}]}";
+                String policyJson = "{\"Version\": \"2012-10-17\",\"Statement\": [{\"Effect\": \"Allow\",\"Principal\": \"*\",\"Action\": [\"s3:GetObject\"],\"Resource\": \"arn:aws:s3:::product-images/*\"},{\"Effect\": \"Allow\",\"Principal\": \"*\",\"Action\": [\"s3:GetBucketLocation\"],\"Resource\": \"arn:aws:s3:::product-images\"}]}";
                 minioClient.setBucketPolicy(
                         SetBucketPolicyArgs.builder().bucket("product-images").config(policyJson).build());
                 System.out.println("Bucket '" + bucketName + "' created successfully.");
@@ -63,7 +63,7 @@ public class MinioService {
                         .contentType(file.getContentType())
                         .build()
         );
-        return "http://localhost:9000/" + bucketName + "/" + fileName;
+        return "http://localhost:8080/" + bucketName + "/" + fileName;
     }
 }
 
