@@ -29,7 +29,7 @@ public class ProductController {
     }
 
     // --- Read
-    @GetMapping("/blabla")
+    @GetMapping("/search")
     public ResponseEntity<List<ProductData>> searchProducts(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String name,
