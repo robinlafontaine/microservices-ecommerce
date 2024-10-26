@@ -9,7 +9,7 @@ Refer to the file structure within the repository to understand the layout and o
 ```
 ├── auth                     # Auth Service - User authentication and authorization
 ├── config                   # Config Service - Centralized configuration management
-├── databases                # Database initialization scripts
+├── databases                # Database data and initialization scripts
 ├── frontend                 # Frontend application using Svelte
 ├── images                   # Sample images for products
 ├── inventory                # Inventory Service - Product management and stock control
@@ -57,28 +57,27 @@ Refer to the file structure within the repository to understand the layout and o
 
 ### Prerequisites
 
-Ensure you have the following installed:
+Ensure you have the following installed to run:
 - **Docker** and **Docker Compose** for containerization
-- **Java 11+**
+
+And for development :
+- **Java 17+**
 - **Gradle** for dependency management
 - **Node.js** and **npm** (for frontend setup)
 
 ### Running Locally
 
 1. **Clone the repository**:
-   ```bash
-   git clone --recurse-submodules <your-repo-url>
-   ```
+```bash
+git clone --recurse-submodules <your-repo-url>
+```
 2. **Start Docker Containers**:
 - Use Docker Compose to start the entire microservices environment:
 ```bash
 docker-compose -f compose.yaml up --build
 ```
 3. **Access Website**:
-- Frontend: http://localhost:3000
-
-## Configuration Management
-The configuration files for the Spring Cloud Config service are located in the config submodule. Modify these files for environment-specific configurations and service settings.
+- Frontend: `http://localhost:3000`
 
 ## Project Configuration
 - Environment Variables: The [ecommerce-config](https://github.com/robinlafontaine/ecommerce-config) repository stores the configurations for each service. Other variables are stored in the Docker Compose file.
@@ -108,7 +107,8 @@ There are several areas in this project that can be enhanced to further improve 
 
 3. **CI/CD Pipeline**:
    - Establish a **CI/CD pipeline** using GitHub Actions to automate builds, testing, and deployment processes.
-   - Add automated **security scans** for vulnerabilities in dependencies and Docker images (GitHub's repo secret scanning is sufficient for now).
+   - Add automated **security scans** for vulnerabilities in dependencies and Docker images.
+      -  GitHub's repo secret scanning is sufficient for now.
 
 4. **Documentation**:
    - Create API documentation using **Swagger/OpenAPI** for all microservices to facilitate development and integration.
