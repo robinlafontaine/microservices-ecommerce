@@ -6,10 +6,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.function.Predicate;
 
-/**
- *
- * @author Robin Lafontaine
- */
 @Component
 public class RouteValidator {
     public static final List<String> unprotectedURLs = List.of("/authenticate");

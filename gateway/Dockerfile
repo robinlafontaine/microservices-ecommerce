@@ -7,7 +7,7 @@ COPY src/main ./src/main
 
 RUN gradle clean build
 
-FROM amazoncorretto:21-alpine-jdk AS run
+FROM amazoncorretto:17-alpine-jdk AS run
 
 LABEL maintainer1="Robin Lafontaine"
 LABEL maintainer2="Bastien Ubassy"

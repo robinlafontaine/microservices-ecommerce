@@ -6,10 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-/**
- *
- * @author Robin Lafontaine
- */
 @Component
 public class RequestFilter implements GatewayFilter {
     @Override

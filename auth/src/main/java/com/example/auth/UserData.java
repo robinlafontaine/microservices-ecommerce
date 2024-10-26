@@ -31,6 +31,8 @@ public class UserData implements Serializable {
     @Enumerated(EnumType.STRING)
     private Roles role;
 
+    private String position;
+
     public UserData() {
 
     }
@@ -81,5 +83,13 @@ public class UserData implements Serializable {
 
     public void setRole(Roles role) {
         this.role = role;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 }

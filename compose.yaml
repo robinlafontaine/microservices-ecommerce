@@ -1,28 +1,41 @@
 services:
+  gateway:
+    image: gateway:latest
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    depends_on:
+      - auth-service
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
+      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
+      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
+
   auth-service:
     image: auth-service:latest
     build:
       context: ./auth
       dockerfile: Dockerfile
-    ports:
-      - '8082:8082'
     networks:
       - backend
     depends_on:
       auth-postgres:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
 
   inventory-service:
     image: inventory-service:latest
     build:
       context: ./inventory
       dockerfile: Dockerfile
-    ports:
-      - '8083:8083'
     networks:
       - backend
     volumes:
@@ -33,21 +46,19 @@ services:
       minio:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-postgres:5432/inventory_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - MINIO_URL=http://minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin123
-      - MINIO_BUCKET=product-images
+      SPRING_DATASOURCE_URL: jdbc:postgresql://inventory-postgres:5432/inventory_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET: product-images
 
   payment-service:
     image: payment-service:latest
     build:
       context: ./payment
       dockerfile: Dockerfile
-    ports:
-      - '8084:8084'
     networks:
       - backend
     depends_on:
@@ -59,14 +70,30 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
 
+  order-service:
+    image: order-service:latest
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_DATASOURCE_URL: jdbc:postgresql://order-postgres:5432/order_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+      PAYMENT_SERVICE_URL: http://payment-service:8084
+
   auth-postgres:
     image: postgres:latest
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
     networks:
       - backend
     volumes:
@@ -84,8 +111,6 @@ services:
       POSTGRES_DB: inventory_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-    ports:
-      - "5433:5432"
     networks:
       - backend
     volumes:
@@ -103,8 +128,6 @@ services:
       POSTGRES_DB: payment_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-    ports:
-      - "5434:5432"
     networks:
       - backend
     volumes:
@@ -116,21 +139,22 @@ services:
       timeout: 5s
       retries: 5
 
-#  gateway:
-#    image: gateway:latest
-#    build:
-#      context: ./gateway
-#      dockerfile: Dockerfile
-#    ports:
-#      - "8080:8080"
-#    networks:
-#      - backend
-#    depends_on:
-#      - auth-service
-#    environment:
-#      SPRING_CLOUD_GATEWAY_ROUTES[0].ID: auth-service
-#      SPRING_CLOUD_GATEWAY_ROUTES[0].URI: http://auth-service:8082
-#      SPRING_CLOUD_GATEWAY_ROUTES[0].PREDICATES[0]: Path=/authenticate
+  order-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - backend
+    volumes:
+      - ./databases/order/pgdata:/var/lib/postgresql/data
+      - ./databases/scripts/order_init.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname=order_db --username=postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   minio:
     image: minio/minio:latest
@@ -153,6 +177,21 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    restart: always
+    ports:
+      - "9002:9000"
+    networks:
+      - backend
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+volumes:
+    portainer_data:
 
 networks:
   backend:

@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
+@RefreshScope
 public class AuthFilter implements GatewayFilter {
 
     @Autowired
@@ -32,12 +33,12 @@ public class AuthFilter implements GatewayFilter {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        if (!authEnabled) {
-            System.out.println("Authentication is disabled. To enable it, set \"authentication.enabled\" property to true");
+        if (request.getURI().getPath().equals("/authenticate")) {
             return chain.filter(exchange);
         }
 
-        if (request.getURI().getPath().equals("/authenticate")) {
+        if (!authEnabled) {
+            System.out.println("Authentication is disabled. To enable it, set \"authentication.enabled\" property to true");
             return chain.filter(exchange);
         }
 
@@ -55,16 +56,26 @@ public class AuthFilter implements GatewayFilter {
             try {
                 jwtUtil.fetchPublicKey();
                 Claims claims = jwtUtil.getAllClaims(token);
+                String role = claims.get("role", String.class);
+
+                // Get required roles for the path
+                List<String> requiredRoles = RouteRoles.requiredRolesForPath(request.getURI().getPath());
+
+                // Check if user has required role
+                if (!RouteRoles.hasRequiredRole(role, requiredRoles)) {
+                    return this.onError(exchange, 
+                        "Forbidden: You don't have the required role (" + role + ")", 
+                        HttpStatus.FORBIDDEN);
+                }
 
                 if (jwtUtil.isInvalid(token)) {
                     return this.onError(exchange, "Invalid or expired JWT token", HttpStatus.UNAUTHORIZED);
                 }
 
+                populateRequestWithHeaders(exchange, token);
             } catch (JwtException | IllegalArgumentException e) {
                 return this.onError(exchange, "Invalid Token", HttpStatus.UNAUTHORIZED);
             }
-
-            populateRequestWithHeaders(exchange, token);
         }
 
         return chain.filter(exchange);
@@ -89,6 +100,8 @@ public class AuthFilter implements GatewayFilter {
             return null; // Or handle the case where the prefix is missing
         }
     }
+
+
 
     private boolean isCredsMissing(ServerHttpRequest request) {
         return !(request.getHeaders().containsKey("userName") && request.getHeaders().containsKey("role")) && !request.getHeaders().containsKey("Authorization");

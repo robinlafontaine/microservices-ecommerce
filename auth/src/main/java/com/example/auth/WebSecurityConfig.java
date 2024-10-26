@@ -31,6 +31,9 @@ public class WebSecurityConfig {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
+    private UserDetailsService jwtUserDetailsService;
+
+    @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
     @Bean
@@ -55,6 +58,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/authenticate", "/public-key", "/export-users", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                                // .requestMatchers("/export-users").hasAuthority("ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling ->

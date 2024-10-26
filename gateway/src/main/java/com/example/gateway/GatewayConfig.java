@@ -7,22 +7,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.csrf.CsrfToken;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-/**
- *
- * @author Robin Lafontaine
- */
 @Configuration
 public class GatewayConfig {
-
     private final AuthFilter authFilter;
-
-    @Autowired
-    private CsrfTokenRepository csrfTokenRepository;
 
     public GatewayConfig(AuthFilter authFilter) {
         this.authFilter = authFilter;
@@ -44,6 +35,17 @@ public class GatewayConfig {
                 .route("protected-routes", r -> r.path("/**")
                         .filters(f -> f.filter(authFilter))
                         .uri("http://auth-service:8082"))
+                .route("inventory-service", r -> r.path("/api/inventory/**")
+                        .filters(f -> f.filter(authFilter))
+                        .uri("http://inventory-service:8083"))
+                .route("payment-service", r -> r.path("/api/payments/**")
+                        .filters(f -> f.filter(authFilter))
+                        .uri("http://payment-service:8084"))
+                .route("order-service", r -> r.path("/api/orders/**")
+                        .filters(f -> f.filter(authFilter))
+                        .uri("http://order-service:8085"))
+                .route("minio", r -> r.path("/product-images/**")
+                        .uri("http://minio:9000"))
                 .build();
     }
 
@@ -60,18 +62,5 @@ public class GatewayConfig {
         source.registerCorsConfiguration("/**", corsConfig);
 
         return new CorsWebFilter(source);
-    }
-
-    @Bean
-    public WebFilter csrfWebFilter() {
-        return (exchange, chain) -> {
-            Mono<CsrfToken> csrfToken = csrfTokenRepository.loadToken(exchange);
-            return csrfToken.flatMap(token -> {
-                ServerHttpRequest request = exchange.getRequest().mutate()
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getToken())
-                        .build();
-                return chain.filter(exchange.mutate().request(request).build());
-            });
-        };
     }
 }

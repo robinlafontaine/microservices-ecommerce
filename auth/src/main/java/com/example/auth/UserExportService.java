@@ -15,14 +15,14 @@ public class UserExportService {
     public byte[] exportUsersToCsv() throws IOException {
         List<UserData> users = userDataRepository.findAll();
         StringBuilder csvContent = new StringBuilder();
-        csvContent.append("First Name,Last Name,Email\n");
+        csvContent.append("First Name,Last Name,Email,Position\n");
 
         for (UserData user : users) {
-            csvContent.append(String.format("%s,%s,%s\n",
+            csvContent.append(String.format("%s,%s,%s,%s\n",
                     escapeSpecialCharacters(user.getFirstName()),
                     escapeSpecialCharacters(user.getLastName()),
-                    escapeSpecialCharacters(user.getEmail())
-            ));
+                    escapeSpecialCharacters(user.getEmail()),
+                    escapeSpecialCharacters(user.getPosition())));
         }
 
         return csvContent.toString().getBytes();
