@@ -68,8 +68,9 @@ And for development :
 ### Running Locally
 
 1. **Clone the repository**:
+- Remove `--recurse-submodules` if you don't want to clone the service configuration files (this does not affect runtime).
 ```bash
-git clone --recurse-submodules <your-repo-url>
+git clone --recurse-submodules https://github.com/robinlafontaine/microservices-ecommerce.git
 ```
 2. **Start Docker Containers**:
 - Use Docker Compose to start the entire microservices environment:
