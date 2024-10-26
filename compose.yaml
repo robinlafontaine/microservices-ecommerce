@@ -13,6 +13,28 @@ services:
     networks:
       - backend
 
+  config-service:
+    image: config-service:latest
+    build:
+      context: ./config
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    environment:
+      SERVER_PORT: 8888
+      SPRING_APPLICATION_NAME: config-service
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/robinlafontaine/ecommerce-config.git
+    healthcheck:
+        test: "curl --fail --silent localhost:8888/actuator/health | grep UP || exit 1"
+        interval: 10s
+        timeout: 5s
+        retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.config.entrypoints=web"
+      - "traefik.http.services.config.loadbalancer.server.port=8888"
+      - "traefik.http.routers.config.middlewares="
+
   auth-service:
     image: auth-service:latest
     build:
@@ -23,19 +45,16 @@ services:
 #    deploy:    # Uncomment to deploy in swarm mode
 #      replicas: 2
     depends_on:
+      config-service:
+        condition: service_healthy
       auth-postgres:
         condition: service_healthy
       zipkin:
         condition: service_healthy
     environment:
       SERVER_PORT: 8082
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
-      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
-
+      SPRING_APPLICATION_NAME: auth-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-service:8888
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.unprotected.rule=Path(`/auth/authenticate`)"
@@ -62,21 +81,16 @@ services:
     volumes:
       - ./images:/images
     depends_on:
+      config-service:
+        condition: service_healthy
       inventory-postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
     environment:
       SERVER_PORT: 8083
-      SPRING_DATASOURCE_URL: jdbc:postgresql://inventory-postgres:5432/inventory_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
-      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
-      MINIO_URL: http://minio:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      MINIO_BUCKET: product-images
+      SPRING_APPLICATION_NAME: inventory-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-service:8888
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.inventory.entrypoints=web"
@@ -95,16 +109,14 @@ services:
     networks:
       - backend
     depends_on:
+      config-service:
+        condition: service_healthy
       payment-postgres:
         condition: service_healthy
     environment:
       SERVER_PORT: 8084
-      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
-      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
-      STRIPE_API_KEY: sk_test_4eC39HqLyjWDarjtT1zdp7dc
+      SPRING_APPLICATION_NAME: payment-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-service:8888
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.payment.entrypoints=web"
@@ -123,18 +135,14 @@ services:
     networks:
       - backend
     depends_on:
+      config-service:
+        condition: service_healthy
       order-postgres:
         condition: service_healthy
     environment:
       SERVER_PORT: 8085
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-      SPRING_DATASOURCE_URL: jdbc:postgresql://order-postgres:5432/order_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
-      SPRING_SLEUTH_SAMPLER_PROBABILITY: 1.0
-      INVENTORY_SERVICE_URL: http://inventory-service:8083
-      PAYMENT_SERVICE_URL: http://payment-service:8084
+      SPRING_APPLICATION_NAME: order-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-service:8888
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.order.entrypoints=web"
