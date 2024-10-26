@@ -25,9 +25,9 @@ services:
       SPRING_APPLICATION_NAME: config-service
       SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/robinlafontaine/ecommerce-config.git
     healthcheck:
-        test: [ "CMD", "curl", "-f", "http://config-service:8888/actuator/health" ]
-        interval: 30s
-        timeout: 10s
+        test: "curl --fail --silent localhost:8888/actuator/health | grep UP || exit 1"
+        interval: 10s
+        timeout: 5s
         retries: 3
     labels:
       - "traefik.enable=true"

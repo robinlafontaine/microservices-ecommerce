@@ -12,6 +12,7 @@ FROM amazoncorretto:21-alpine-jdk AS run
 LABEL maintainer1="Robin Lafontaine"
 LABEL maintainer2="Bastien Ubassy"
 
+RUN apk --no-cache add curl # For healthcheck
 
 RUN addgroup -S app-group && adduser -S app-user -G app-group
 
