@@ -1,0 +1,3 @@
+[submodule "ecommerce-config"]
+	path = ecommerce-config
+	url = https://github.com/robinlafontaine/ecommerce-config.git
