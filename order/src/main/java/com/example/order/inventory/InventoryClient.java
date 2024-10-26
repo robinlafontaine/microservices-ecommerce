@@ -10,10 +10,10 @@ import java.util.List;
 @FeignClient(name = "inventory-service", url = "${inventory.service.url}")
 public interface InventoryClient {
 
-    @PostMapping("/api/inventory/check")
+    @PostMapping("/inventory/check")
     boolean checkStock(@RequestBody List<OrderItem> items);
 
-    @PostMapping("/api/inventory/reserve")
+    @PostMapping("/inventory/reserve")
     void reserveStock(@RequestBody List<OrderItem> items);
 }
 

@@ -10,9 +10,9 @@ import java.math.BigDecimal;
 @FeignClient(name = "payment-service", url = "${payment.service.url}")
 public interface PaymentClient {
 
-    @PostMapping("/api/payments/initiate")
+    @PostMapping("/payments/initiate")
     PaymentResponse initiatePayment(@RequestParam BigDecimal amount, @RequestParam Long orderId);
 
-    @GetMapping("/api/payments/status")
+    @GetMapping("/payments/status")
     PaymentStatus getPaymentStatus(@RequestParam Long paymentId);
 }

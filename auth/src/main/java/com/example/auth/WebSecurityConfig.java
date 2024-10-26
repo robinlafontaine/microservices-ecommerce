@@ -57,7 +57,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/authenticate", "/public-key", "/export-users", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                                .requestMatchers("/auth/authenticate", "/auth/export-users", "/product-images").permitAll()
                                 // .requestMatchers("/export-users").hasAuthority("ADMIN")
                                 .anyRequest().authenticated()
                 )

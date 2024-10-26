@@ -10,7 +10,7 @@ import java.util.List;
  * @author Bastien Ubassy
  */
 @RestController
-@RequestMapping("/api/inventory/category")
+@RequestMapping("/inventory/category")
 public class CategoryController {
 
     private final CategoryService categoryService;
