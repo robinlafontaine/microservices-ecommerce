@@ -2,13 +2,13 @@ services:
   traefik:
     image: traefik:v2.10
     command:
+      - "--configFile=/etc/traefik/traefik.yml"
       - "--providers.docker=true"
-      - "--entrypoints.web.address=:8080"
-      - "--tracing.zipkin.httpEndpoint=http://zipkin:9411/api/v2/spans"
-      - "--accessLog=true"
+      - "--providers.file.filename=/etc/traefik/traefik.yml"
     ports:
       - "8080:8080"
     volumes:
+      - "./traefik.yml:/etc/traefik/traefik.yml"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - backend
@@ -57,19 +57,20 @@ services:
       SPRING_CONFIG_IMPORT: configserver:http://config-service:8888
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.unprotected.rule=Path(`/auth/authenticate`)"
-      - "traefik.http.routers.unprotected.entrypoints=web"
-      - "traefik.http.routers.unprotected.service=unprotected"
-      - "traefik.http.services.unprotected.loadbalancer.server.port=8082"
-      - "traefik.http.routers.unprotected.middlewares="
-      - "traefik.http.routers.auth.rule=PathPrefix(`/auth`)"
+
+      - "traefik.http.routers.auth-authenticate.entrypoints=web"
+      - "traefik.http.routers.auth-authenticate.rule=Path(`/auth/authenticate`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.auth-authenticate.middlewares="
+
       - "traefik.http.routers.auth.entrypoints=web"
-      - "traefik.http.routers.auth.service=auth"
-      - "traefik.http.services.auth.loadbalancer.server.port=8082"
-      - "traefik.http.routers.auth.middlewares=jwt-auth"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/auth`) && !Path(`/auth/authenticate`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.auth.middlewares=jwt-auth@file"
+
+      - "traefik.http.routers.preflight-auth.rule=PathPrefix(`/auth`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.preflight-auth.entrypoints=web"
+      - "traefik.http.routers.preflight-auth.middlewares=cors@file"
+      - "traefik.http.routers.preflight-auth.service=noop@internal"
+
 
   inventory-service:
     image: inventory-service:latest
@@ -94,12 +95,12 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.inventory.entrypoints=web"
-      - "traefik.http.routers.inventory.rule=PathPrefix(`/inventory`)"
-      - "traefik.http.services.inventory.loadbalancer.server.port=8083"
-      - "traefik.http.routers.inventory.middlewares=jwt-auth"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
+      - "traefik.http.routers.inventory.rule=PathPrefix(`/inventory`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.inventory.middlewares=jwt-auth@file"
+      - "traefik.http.routers.preflight-inventory.rule=PathPrefix(`/inventory`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.preflight-inventory.entrypoints=web"
+      - "traefik.http.routers.preflight-inventory.middlewares=cors@file"
+      - "traefik.http.routers.preflight-inventory.service=noop@internal"
 
   payment-service:
     image: payment-service:latest
@@ -120,12 +121,12 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.payment.entrypoints=web"
-      - "traefik.http.routers.payment.rule=PathPrefix(`/payments`)"
-      - "traefik.http.services.payment.loadbalancer.server.port=8084"
-      - "traefik.http.routers.payment.middlewares=jwt-auth"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
+      - "traefik.http.routers.payment.rule=PathPrefix(`/payments`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.payment.middlewares=jwt-auth@file"
+      - "traefik.http.routers.preflight-payment.rule=PathPrefix(`/payments`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.preflight-payment.entrypoints=web"
+      - "traefik.http.routers.preflight-payment.middlewares=cors@file"
+      - "traefik.http.routers.preflight-payment.service=noop@internal"
 
   order-service:
     image: order-service:latest
@@ -146,12 +147,54 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.order.entrypoints=web"
-      - "traefik.http.routers.order.rule=PathPrefix(`/orders`)"
-      - "traefik.http.services.order.loadbalancer.server.port=8085"
-      - "traefik.http.routers.order.middlewares=jwt-auth"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
+      - "traefik.http.routers.order.rule=PathPrefix(`/orders`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.order.middlewares=jwt-auth@file"
+      - "traefik.http.routers.preflight-order.rule=PathPrefix(`/orders`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.preflight-order.entrypoints=web"
+      - "traefik.http.routers.preflight-order.middlewares=cors@file"
+      - "traefik.http.routers.preflight-order.service=noop@internal"
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_DEFAULT_BUCKETS: image_bucket
+    command: server --address ':9000' --console-address ':9001' /data
+    volumes:
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://minio:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.entrypoints=web"
+      - "traefik.http.routers.minio.rule=PathPrefix(`/product-images`)"
+      - "traefik.http.routers.minio.middlewares="
+      - "traefik.http.routers.preflight-minio.rule=PathPrefix(`/product-images`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.preflight-minio.entrypoints=web"
+      - "traefik.http.routers.preflight-minio.middlewares=cors@file"
+      - "traefik.http.routers.preflight-minio.service=noop@internal"
+
+  zipkin:
+    image: openzipkin/zipkin
+    networks:
+        - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zipkin.entrypoints=web"
+      - "traefik.http.routers.zipkin.rule=PathPrefix(`/zipkin`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.zipkin.middlewares=jwt-auth@file"
+      - "traefik.http.routers.preflight-zipkin.rule=PathPrefix(`/zipkin`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.preflight-zipkin.entrypoints=web"
+      - "traefik.http.routers.preflight-zipkin.middlewares=cors@file"
+      - "traefik.http.routers.preflight-zipkin.service=noop@internal"
 
   auth-postgres:
     image: postgres:latest
@@ -220,45 +263,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  minio:
-    image: minio/minio:latest
-    container_name: minio
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-      MINIO_DEFAULT_BUCKETS: image_bucket
-    command: server --address ':9000' --console-address ':9001' /data
-    volumes:
-      - ./minio/data:/data
-      - ./minio/config:/root/.minio
-    networks:
-      - backend
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://minio:9000/minio/health/live" ]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=PathPrefix(`/product-images`)"
-      - "traefik.http.routers.minio.entrypoints=web"
-      - "traefik.http.services.minio.loadbalancer.server.port=9000"
-      - "traefik.http.routers.minio.middlewares="
-
-  zipkin:
-    image: openzipkin/zipkin
-    networks:
-        - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.zipkin.entrypoints=web"
-      - "traefik.http.routers.zipkin.rule=PathPrefix(`/zipkin`)"
-      - "traefik.http.services.zipkin.loadbalancer.server.port=9411"
-      - "traefik.http.routers.zipkin.middlewares=jwt-auth"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.address=http://auth-service:8082/auth/validate"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.authRequestHeaders=Authorization, X-Forwarded-Uri"
-      - "traefik.http.middlewares.jwt-auth.forwardauth.trustforwardheader=true"
 
 networks:
   backend:

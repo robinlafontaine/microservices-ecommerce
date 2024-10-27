@@ -1,0 +1,83 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+
+#log:
+#  level: DEBUG
+
+accesslog:
+  format: common
+  filePath: /var/log/traefik/access.log
+
+entryPoints:
+  web:
+    address: ":8080"
+
+tracing:
+  zipkin:
+    httpEndpoint: http://zipkin:9411/api/v2/spans
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+
+  file:
+    filename: /etc/traefik/traefik.yml
+    watch: true
+
+
+http:
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        accessControlAllowHeaders: ["Authorization", "Content-Type"]
+        accessControlAllowOriginList: ["*"]
+        accessControlMaxAge: 86400
+        addVaryHeader: true
+    jwt-auth:
+      forwardAuth:
+        address: "http://auth-service:8082/auth/validate"
+        trustForwardHeader: true
+
+  services:
+    config-service:
+      loadBalancer:
+        servers:
+          - url: "http://config-service:8888"
+
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:8082"
+
+    inventory-service:
+      loadBalancer:
+        servers:
+          - url: "http://inventory-service:8083"
+
+    payment-service:
+      loadBalancer:
+        servers:
+          - url: "http://payment-service:8084"
+
+    order-service:
+      loadBalancer:
+        servers:
+          - url: "http://order-service:8085"
+
+    minio:
+      loadBalancer:
+        servers:
+          - url: "http://zipkin:9411"
+
+    zipkin:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9000"
+
+    noob-service:
+      loadBalancer:
+        servers:
+          - url: "http://0.0.0.0"
