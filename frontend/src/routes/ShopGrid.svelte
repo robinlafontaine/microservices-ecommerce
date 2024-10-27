@@ -1,31 +1,57 @@
-<script>
-	import {products} from '$lib/datas/products.json';
-	import { showProducts } from '$lib/productService';
-	const basePath = new URL('$lib/images/products/', import.meta.url);
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { showProducts, checkAuth } from '$lib/productService';
+
+	let products: never[] = [];
+	let _canManipulate = false;
 
 	if (!document.cookie.includes('authToken')) {
 		window.location.href = '/login';
-	}
-	else {
+	} else {
 		console.log('User is logged in');
-		showProducts();
+
+		onMount(async () => {
+			const response = await showProducts();
+			if (response.success) {
+				products = response.data;
+			} else {
+				console.error(response.error);
+			}
+			console.log(products);
+
+			const canManipulate = await checkAuth();
+			console.log(canManipulate);
+			if (canManipulate.success) {
+				console.log('User can manipulate products');
+				_canManipulate = true;
+			} else {
+				console.error('User cannot manipulate products');
+			}
+		});
 	}
 </script>
 
 <div class="shop-grid">
-
 	{#each products as product}
 		<div class="shop-card">
-			<img class="product-image" src={`${basePath}/${product.img}`} alt={product.name} />
-			<p class="name">{product.name}</p>
+			<img class="product-image" src={`${product.imageUrl}`} alt={product.productName} />
+			<p class="name">{product.productName}</p>
 			<p class="price">{product.price}€</p>
 			<button class="add-to-cart">Add to cart 
 				<span class="material-symbols-outlined">
 				add_shopping_cart
 				</span>
 			</button>
+			<!-- If  -->
+			{#if _canManipulate}
+				<button class="edit-product">Edit product 
+					<span class="material-symbols-outlined">
+					edit
+					</span>
+				</button>
+			{/if}
 		</div>
-	{/each}	
+	{/each}
 </div>
 
 <style>
