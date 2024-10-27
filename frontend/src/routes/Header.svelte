@@ -22,7 +22,7 @@
 				shopping_cart
 				</span>
 		</a>
-		<a href="/sverdle">
+		<a href="/login">
 			<span class="material-symbols-outlined">
 				account_circle
 				</span>
