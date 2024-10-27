@@ -1,6 +1,7 @@
 package com.example.auth;
 
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "*")
 public class AuthenticationController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
@@ -182,9 +184,26 @@ public class AuthenticationController {
 
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestHeader("X-Forwarded-Uri") String requestedEndpoint) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Forwarded-Uri") String requestedEndpoint,
+            HttpServletRequest request) {
 
+        logger.info("Handling request: {}", request);
+
+        // Handle preflight request
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            String originHeader = request.getHeader("Origin");
+            String methodsHeader = request.getHeader("Access-Control-Request-Methods");
+            String headersHeader = request.getHeader("Access-Control-Request-Headers");
+
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", originHeader != null ? originHeader : "*")
+                    .header("Access-Control-Allow-Methods", methodsHeader != null ? methodsHeader : "GET, POST, OPTIONS")
+                    .header("Access-Control-Allow-Headers", headersHeader != null ? headersHeader : "Authorization, Content-Type")
+                    .build();
+        }
+
+        // Validate JWT Token
         logger.info("Validating token for endpoint: {}", requestedEndpoint);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -212,5 +231,6 @@ public class AuthenticationController {
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
     }
+
 }
 
