@@ -1,6 +1,15 @@
 <script>
 	import {products} from '$lib/datas/products.json';
+	import { showProducts } from '$lib/productService';
 	const basePath = new URL('$lib/images/products/', import.meta.url);
+
+	if (!document.cookie.includes('authToken')) {
+		window.location.href = '/login';
+	}
+	else {
+		console.log('User is logged in');
+		showProducts();
+	}
 </script>
 
 <div class="shop-grid">

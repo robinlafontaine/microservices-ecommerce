@@ -1,11 +1,12 @@
-export async function handleLogin(email: string, password: string) {
+export async function showProducts() {
+	console.log(document.cookie.split('=')[1]);
 	try {
-		const response = await fetch('http://localhost:8080/auth/authenticate', {
-			method: 'POST',
+		const response = await fetch('http://localhost:8080/inventory/products/search', {
+			method: 'GET',
 			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ email, password })
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${document.cookie.split('=')[1]}`
+			}
 		});
 
 		if (response.ok) {
