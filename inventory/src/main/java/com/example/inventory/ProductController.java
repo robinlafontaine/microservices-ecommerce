@@ -1,5 +1,7 @@
 package com.example.inventory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -7,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -20,6 +23,8 @@ public class ProductController {
     private final ProductService productService;
     private final MinioService minioService;
 
+    Logger logger = LoggerFactory.getLogger(ProductController.class);
+
     @Autowired
     public ProductController(ProductService productService, MinioService minioService) {
         this.productService = productService;
@@ -28,10 +33,11 @@ public class ProductController {
 
     // --- Create
     @PostMapping()
-    public ResponseEntity createProduct(@RequestBody(required = false) ProductData productData) {
+    public ResponseEntity<Void> createProduct(@RequestBody(required = false) ProductData productData) {
         if (productData == null) {
-            return ResponseEntity.badRequest().body("Access granted to update this product, but request body is required.");
+            return ResponseEntity.badRequest().body(null);
         }
+        logger.info("Creating product: {}", productData.getProductName());
         productService.createProduct(productData);
         return ResponseEntity.noContent().build();
     }
@@ -52,29 +58,42 @@ public class ProductController {
 
     // --- Update
     @PutMapping("/{id}")
-    public ResponseEntity updateProduct(@PathVariable Long id, @RequestBody(required = false) ProductData newProduct) {
-        if (newProduct == null) {
-            return ResponseEntity.badRequest().body("Access granted to update this product, but request body is required.");
+    public ResponseEntity<Void> updateProduct(@PathVariable Long id, @RequestBody(required = false) ProductData productData) {
+        if (productData == null) {
+            return ResponseEntity.badRequest().body(null);
         }
-
-        ProductData updatedProduct = productService.updateProduct(id, newProduct);
-        return ResponseEntity.ok(updatedProduct);
+        logger.info("Updating product: {}", id);
+        productService.updateProduct(id, productData);
+        return ResponseEntity.noContent().build();
     }
 
     // --- Delete
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+        logger.info("Deleting product: {}", id);
+        try {
+            productService.deleteProduct(id);
+        } catch (Exception e) {
+            logger.error("Error deleting product", e);
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.noContent().build();
     }
 
     // --- Upload an image
-    @PostMapping
-    public String uploadImage(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = false) MultipartFile file) {
+        if (file == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Image file is required."));
+        }
+        logger.info("Uploading image: {}", file.getOriginalFilename());
         try {
-            return minioService.uploadImage(file);
+            String url = minioService.uploadImage(file);
+            logger.info("Image uploaded: {}", url);
+            return ResponseEntity.ok(Map.of("url", url));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Error uploading image", e);
+            return ResponseEntity.badRequest().body(Map.of("error", "Error uploading image"));
         }
     }
 }
