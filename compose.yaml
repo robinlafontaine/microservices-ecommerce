@@ -183,9 +183,11 @@ services:
       - "traefik.http.routers.preflight-minio.service=noop@internal"
 
   zipkin:
-    image: openzipkin/zipkin
+    image: openzipkin/zipkin:3
     networks:
         - backend
+    ports:
+      - "9411:9411"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.zipkin.entrypoints=web"

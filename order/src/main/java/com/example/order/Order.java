@@ -23,7 +23,7 @@ public class Order {
 
     private Long userId;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> items;
 
     private BigDecimal totalAmount;
@@ -35,7 +35,6 @@ public class Order {
 
     private Long paymentId;
 
-    public Order() {
-    }
+    public Order() {}
 
 }
