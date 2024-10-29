@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { checkAuth } from '$lib/productService';
+	import { checkAuth } from '$lib/services/productService';
 	import logo from '$lib/images/logo.svg';
 
 	let _canManipulate = false;
@@ -38,7 +38,7 @@
 				</span>
 			</a>
 		{/if}
-		<a href="/about">
+		<a href="/stripePayment">
 			<span class="material-symbols-outlined">
 				shopping_cart
 				</span>

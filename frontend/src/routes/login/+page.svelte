@@ -5,7 +5,7 @@
 
 <script lang="ts">
   import { useForm, validators, HintGroup, Hint, email, required } from "svelte-use-form";
-  import { handleLogin } from '$lib/authService';
+  import { handleLogin } from '$lib/services/authService';
 
   const form = useForm();
   let _email = '';

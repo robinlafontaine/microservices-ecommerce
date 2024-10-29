@@ -1,16 +1,21 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { showProducts, checkAuth } from '$lib/productService';
+	import { showProducts, checkAuth, deleteProduct } from '$lib/services/productService';
+	import { getCookie } from '$lib/utils/getCookie';	
+	import type { ProductResponseDTO } from '$lib/types/productTypes';
 
-	let products: never[] = [];
+	let products: ProductResponseDTO[] = [];
 	let _canManipulate = false;
 
-	if (!document.cookie.includes('authToken')) {
-		window.location.href = '/login';
+	if (getCookie('authToken') === null) {
+		if (typeof window !== 'undefined') {
+			window.location.href = '/login';
+		}
 	} else {
-		console.log('User is logged in');
+		console.log('User is logged in');		
+	}
 
-		onMount(async () => {
+	onMount(async () => {
 			const response = await showProducts();
 			if (response.success) {
 				products = response.data;
@@ -28,7 +33,6 @@
 				console.error('User cannot manipulate products');
 			}
 		});
-	}
 </script>
 
 <div class="shop-grid">
@@ -47,6 +51,13 @@
 				<button class="edit-product">Edit product 
 					<span class="material-symbols-outlined">
 					edit
+					</span>
+				</button>
+				<button class="delete-product" on:click={() => {
+					deleteProduct(product.id); 
+					console.log("deleting")}}>Delete product
+					<span class="material-symbols-outlined">
+					delete
 					</span>
 				</button>
 			{/if}

@@ -1,6 +1,6 @@
 <script>
   import { useForm, validators, HintGroup, Hint, email, required } from "svelte-use-form";
-  import { uploadImage, createProduct  } from '$lib/productService';
+  import { uploadImage, createProduct  } from '$lib/services/productService';
 
   const form = useForm();
   let productName = '';
@@ -18,7 +18,11 @@
 	 */
   async function handleSubmit(event) {
     event.preventDefault();
-    let imageUrl = await uploadImage(image);
+
+    // @ts-ignore
+    const image_file = document.getElementById('image_file').files[0];
+    console.log(image_file);
+    let imageUrl = await uploadImage(image_file);
     let result = await createProduct(productName, description, imageUrl, price, categoryId, stockQuantity);
   }
 </script>
@@ -43,7 +47,7 @@
 
   <div class="form-element">
     <label for="image">Image</label>
-    <input type="file" placeholder="Image" name="image" bind:value={image} use:validators={[required]} />
+    <input id="image_file" type="file" placeholder="Image" name="image" bind:value={image} use:validators={[required]} />
     <HintGroup for="image">
       <Hint on="required">Please fill this area</Hint>
     </HintGroup>

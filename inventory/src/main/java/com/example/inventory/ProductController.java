@@ -84,7 +84,7 @@ public class ProductController {
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam(required = false) MultipartFile file) {
         if (file == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Image file is required."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Image file is required." + file));
         }
         logger.info("Uploading image: {}", file.getOriginalFilename());
         try {
