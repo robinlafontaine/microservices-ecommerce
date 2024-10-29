@@ -1,4 +1,16 @@
 services:
+  frontend:
+    image: frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+        - "3000:3000"
+    networks:
+      - backend
+    depends_on:
+      - traefik
+
   traefik:
     image: traefik:v2.10
     command:
