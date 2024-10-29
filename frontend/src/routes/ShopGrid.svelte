@@ -46,7 +46,7 @@
 				add_shopping_cart
 				</span>
 			</button>
-			<!-- If  -->
+			
 			{#if _canManipulate}
 				<button class="edit-product">Edit product 
 					<span class="material-symbols-outlined">

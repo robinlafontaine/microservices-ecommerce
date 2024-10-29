@@ -6,8 +6,9 @@
   import CardNumber from '$lib/stripe/CardNumber.svelte'
   import CardExpiry from '$lib/stripe/CardExpiry.svelte'
   import CardCvc from '$lib/stripe/CardCvc.svelte'
+  // API key is in .env file
+  import { PUBLIC_STRIPE_KEY } from '$env/static/public'
 
-  const PUBLIC_STRIPE_KEY = 'sk_test_4eC39HqLyjWDarjtT1zdp7dc'
   /**
 	 * @type {import("@stripe/stripe-js").Stripe | null}
 	 */
@@ -76,13 +77,7 @@
   }
 </script>
 
-<h1>Credit Card Example</h1>
-
-<nav>
-  <a href="https://github.com/joshnuss/svelte-stripe/tree/main/src/routes/examples/credit-card"
-    >View code</a
-  >
-</nav>
+<h1>Payment</h1>
 
 {#if error}
   <p class="error">{error.message} Please try again.</p>
