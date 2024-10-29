@@ -1,3 +1,4 @@
+import { goto } from '$app/navigation';
 import { getCookie } from '$lib/utils/getCookie';
 
 export async function showProducts() {
@@ -10,6 +11,34 @@ export async function showProducts() {
 				Authorization: `Bearer ${getCookie('authToken')}`
 			}
 		});
+
+		if (response.ok) {
+			const result = await response.json();
+			return { success: true, data: result };
+		} else {
+			const error = await response.json();
+			return { success: false, error };
+		}
+	} catch (err) {
+		return {
+			success: false,
+			error: err instanceof Error ? err.message : 'An unknown error occurred'
+		};
+	}
+}
+
+export async function showProduct(productId: string) {
+	try {
+		const response = await fetch(
+			`http://localhost:8080/inventory/products/search?id=${productId}`,
+			{
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${getCookie('authToken')}`
+				}
+			}
+		);
 
 		if (response.ok) {
 			const result = await response.json();
@@ -120,9 +149,10 @@ export async function deleteProduct(productId: number): Promise<void> {
 		const response = await fetch(`http://localhost:8080/inventory/products/${productId}`, {
 			method: 'DELETE',
 			headers: {
-				Authorization: `Bearer ${document.cookie.split('=')[1]}`
+				Authorization: `Bearer ${getCookie('authToken')}`
 			}
 		});
+		goto('/');
 	} catch (error) {
 		console.error('An error occurred:', (error as Error).message);
 	}

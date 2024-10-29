@@ -5,7 +5,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        PUBLIC_STRIPE_KEY: pk_test_51J4
+        PUBLIC_STRIPE_KEY: pk_test_oKhSR5nslBRnBZpjO6KuzZeX
     ports:
         - "3000:3000"
     networks:
