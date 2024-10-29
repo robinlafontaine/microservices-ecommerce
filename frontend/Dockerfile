@@ -3,6 +3,10 @@ WORKDIR /app
 COPY package*.json .
 RUN npm install
 COPY . .
+
+ARG PUBLIC_STRIPE_KEY
+ENV PUBLIC_STRIPE_KEY=${PUBLIC_STRIPE_KEY}
+
 RUN npm run build
 RUN npm prune --production
 

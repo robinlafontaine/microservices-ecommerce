@@ -4,6 +4,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        PUBLIC_STRIPE_KEY: pk_test_51J4
     ports:
         - "3000:3000"
     networks:
