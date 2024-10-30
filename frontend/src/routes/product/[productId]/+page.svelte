@@ -1,43 +1,52 @@
-<!-- src/routes/product/[id].svelte -->
 <script lang="ts">
-	import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
-  import { showProducts, showProduct, checkAuth, deleteProduct } from '$lib/services/productService';
+  import { deleteProduct } from '$lib/services/productService';
+  import { showProducts, showProduct, checkAuth } from '$lib/services/productService';
   import type { ProductResponseDTO } from '$lib/types/productTypes';
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
+	import { error } from '@sveltejs/kit';
+  import { addToCart } from '$lib/services/cartService';
 
-  const { productId } = $page.params;
   let product: ProductResponseDTO | null = null;
   let products: ProductResponseDTO[] = [];
   let _canManipulate = false;
 
+  let productId = $page.params.productId;
+
   onMount(async () => {
-			const response = await showProduct(productId);
-			if (response.success) {
-				product = response.data[0];
-			} else {
-				console.error(response.error);
-			}
-			console.log(product);
+    const response = await showProduct(productId);
+    if (response.success) {
+      product = response.data[0];
+    } else {
+      console.error(response.error);
+    }
+    const response2 = await showProducts();
+    if (response2.success) {
+      // select 8 random products
+      products = response2.data.sort(() => Math.random() - Math.random()).slice(0, 8);
+    } else {
+      console.error(response2.error);
+    }
 
-      const response2 = await showProducts();
-      if (response2.success) {
-        console.log(response2.data);
-        // select 8 random products
-        products = response2.data.sort(() => Math.random() - Math.random()).slice(0, 8);
-      } else {
-        console.error(response2.error);
-      }
+    const canManipulate = await checkAuth();
+    if (canManipulate.success) {
+      _canManipulate = true;
+    } else {
+      console.error('User cannot manipulate products');
+    }
 
-      const canManipulate = await checkAuth();
-			console.log(canManipulate);
-			if (canManipulate.success) {
-				console.log('User can manipulate products');
-				_canManipulate = true;
-			} else {
-				console.error('User cannot manipulate products');
-			}
-		});
+    if (!product) {
+      throw error(404, 'Product not found');
+    }
+  });
+
+  function handleCart() {
+    if (product) {
+      addToCart(productId, 1);
+    } else {
+      console.error('Product is null');
+    }
+  };
 </script>
 
 <a class="back" href="/">
@@ -59,7 +68,7 @@
               <p class="description">{product.description}</p>
             </div>
             <div class="cart">
-              <button class="add-to-cart">
+              <button class="add-to-cart" on:click={handleCart}>
                 <span class="material-symbols-outlined add-to-cart-icon">
                 add_shopping_cart
                 </span>
@@ -76,7 +85,6 @@
               <button class="delete-product" on:click={() => {
                 if (product) {
                   deleteProduct(product.id);
-                  console.log("deleting");
                 } else {
                   console.error("Product is null");
                 }

@@ -1,3 +1,5 @@
+import { deleteCookie } from '$lib/utils/cookieUtils';
+
 export async function handleLogin(email: string, password: string) {
 	try {
 		const response = await fetch('http://localhost:8080/auth/authenticate', {

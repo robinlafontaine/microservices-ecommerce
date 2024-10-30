@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { showProducts, checkAuth } from '$lib/services/productService';
-	import { getCookie } from '$lib/utils/getCookie';	
+	import { getCookie } from '$lib/utils/cookieUtils';	
 	import type { ProductResponseDTO } from '$lib/types/productTypes';
 
 	let products: ProductResponseDTO[] = [];
@@ -11,8 +11,6 @@
 		if (typeof window !== 'undefined') {
 			window.location.href = '/login';
 		}
-	} else {
-		console.log('User is logged in');		
 	}
 
 	onMount(async () => {
@@ -22,12 +20,9 @@
 			} else {
 				console.error(response.error);
 			}
-			console.log(products);
 
 			const canManipulate = await checkAuth();
-			console.log(canManipulate);
 			if (canManipulate.success) {
-				console.log('User can manipulate products');
 				_canManipulate = true;
 			} else {
 				console.error('User cannot manipulate products');

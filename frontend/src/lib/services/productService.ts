@@ -1,8 +1,7 @@
 import { goto } from '$app/navigation';
-import { getCookie } from '$lib/utils/getCookie';
+import { getCookie } from '$lib/utils/cookieUtils';
 
 export async function showProducts() {
-	console.log(document.cookie.split('=')[1]);
 	try {
 		const response = await fetch('http://localhost:8080/inventory/products/search', {
 			method: 'GET',
@@ -39,7 +38,6 @@ export async function showProduct(productId: string) {
 				}
 			}
 		);
-
 		if (response.ok) {
 			const result = await response.json();
 			return { success: true, data: result };
@@ -66,7 +64,6 @@ export async function checkAuth() {
 		});
 		if (response.status === 400) {
 			let new_response = { success: true, data: 'admin' };
-			console.log(new_response);
 			return new_response;
 		} else {
 			const error = await response.json();
@@ -82,8 +79,7 @@ export async function checkAuth() {
 
 export async function uploadImage(file: File): Promise<string> {
 	const formData = new FormData();
-	formData.append('file', file); // `file` is a File object
-	console.log('File to upload:', file);
+	formData.append('file', file);
 
 	try {
 		const response = await fetch('http://localhost:8080/inventory/products/upload', {
@@ -95,9 +91,8 @@ export async function uploadImage(file: File): Promise<string> {
 		});
 
 		if (response.ok) {
-			const result = await response.json(); // Parse JSON response
-			console.log('Upload successful:', result.url);
-			return result.url; // Return the image URL from the response body
+			const result = await response.json();
+			return result.url;
 		} else {
 			const errorResult = await response.json();
 			console.error('Upload failed:', errorResult.error);

@@ -1,5 +1,5 @@
 import type { PaymentRequestDTO, PaymentResponseDTO } from '$lib/types/paymentTypes';
-import { getCookie } from '$lib/utils/getCookie';
+import { getCookie } from '$lib/utils/cookieUtils';
 
 const BASE_URL = 'http://localhost:8080/payments';
 
