@@ -104,8 +104,7 @@ public class ProductController {
     }
 
     @PostMapping("/reserve")
-    public ResponseEntity<Void> reserveStock(@RequestBody List<OrderItemDTO> items) {
-        productService.reserveStock(items);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Boolean> reserveStock(@RequestBody List<OrderItemDTO> items) {
+        return ResponseEntity.ok(productService.reserveStock(items));
     }
 }

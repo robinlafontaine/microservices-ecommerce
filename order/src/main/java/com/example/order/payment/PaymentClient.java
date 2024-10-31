@@ -2,6 +2,7 @@ package com.example.order.payment;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -13,6 +14,6 @@ public interface PaymentClient {
     @PostMapping("/payments/initiate")
     PaymentResponse initiatePayment(@RequestParam PaymentRequest paymentRequest);
 
-    @GetMapping("/payments/status")
-    PaymentStatus getPaymentStatus(@RequestParam Long paymentId);
+    @GetMapping("/payments/{paymentId}/status")
+    PaymentStatus getPaymentStatus(@PathVariable Long paymentId);
 }

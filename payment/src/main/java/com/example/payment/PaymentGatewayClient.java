@@ -30,28 +30,48 @@ public class PaymentGatewayClient {
     }
 
     public PaymentResponseDTO processPayment(PaymentRequestDTO paymentRequest) {
+        validatePaymentRequest(paymentRequest);
+
         try {
-            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-                    .setAmount(paymentRequest.getAmount().multiply(BigDecimal.valueOf(100)).longValue()) // Amount in cents
-                    .setCurrency("usd")
-                    .setPaymentMethod(paymentRequest.getPaymentMethodId())
-                    .setDescription("Payment for Order ID: " + paymentRequest.getOrderId())
-                    //.setReturnUrl("https://your-site.com/payment-complete") //TODO : set return URL
-                    .setAutomaticPaymentMethods(PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                            .setEnabled(true)
-                            .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
-                            .build()) //TODO : remove this block to allow redirects
-                    .build();
+            PaymentIntentCreateParams params = createPaymentIntentParams(paymentRequest);
             PaymentIntent paymentIntent = PaymentIntent.create(params);
 
-            PaymentResponseDTO response = new PaymentResponseDTO();
-            response.setPaymentId(paymentIntent.getId());
-            response.setStatus(PaymentStatus.PENDING);
-
-            return response;
+            return buildPaymentResponse(paymentIntent);
         } catch (StripeException e) {
+            // Log the exception details for easier debugging
+            System.err.println("Stripe error occurred: " + e.getMessage());
             throw new PaymentException("Payment processing failed: " + e.getMessage());
         }
+    }
+
+    private void validatePaymentRequest(PaymentRequestDTO paymentRequest) {
+        if (paymentRequest.getAmount() == null || paymentRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than 0");
+        }
+        if (paymentRequest.getCurrency() == null || paymentRequest.getCurrency().isEmpty()) {
+            paymentRequest.setCurrency("eur");
+        }
+    }
+
+    private PaymentIntentCreateParams createPaymentIntentParams(PaymentRequestDTO paymentRequest) {
+        return PaymentIntentCreateParams.builder()
+                .setAmount(paymentRequest.getAmount().multiply(BigDecimal.valueOf(100)).longValue())
+                .setCurrency(paymentRequest.getCurrency())
+                .setDescription("Payment for Order ID: " + paymentRequest.getOrderId())
+                // Uncomment for return URL
+                //.setReturnUrl(System.getenv("PAYMENT_RETURN_URL"))
+                .setAutomaticPaymentMethods(PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                        .setEnabled(true)
+                        .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                        .build())
+                .build();
+    }
+
+    private PaymentResponseDTO buildPaymentResponse(PaymentIntent paymentIntent) {
+        PaymentResponseDTO response = new PaymentResponseDTO();
+        response.setPaymentId(paymentIntent.getId());
+        response.setStatus(PaymentStatus.PENDING);
+        return response;
     }
 
     public HashMap<Integer, String> confirmPayment(String paymentId) {
@@ -85,5 +105,6 @@ public class PaymentGatewayClient {
             throw new PaymentException("Webhook error: " + e.getMessage());
         }
     }
+
 }
 

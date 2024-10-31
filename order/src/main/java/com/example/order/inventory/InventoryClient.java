@@ -14,6 +14,9 @@ public interface InventoryClient {
     boolean checkStock(@RequestBody List<OrderItem> items);
 
     @PostMapping("/inventory/products/reserve")
-    void reserveStock(@RequestBody List<OrderItem> items);
+    boolean reserveStock(@RequestBody List<OrderItem> items);
+
+    @PostMapping("/inventory/products/free")
+    boolean freeStock(@RequestBody List<OrderItem> items);
 }
 

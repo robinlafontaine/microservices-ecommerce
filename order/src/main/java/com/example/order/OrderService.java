@@ -20,27 +20,40 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    public Order createOrder(Order order) throws Exception {
-
+    public PaymentResponse createOrder(Order order) throws Exception {
         boolean isAvailable = inventoryClient.checkStock(order.getItems());
         if (!isAvailable) {
             throw new InventoryException("Insufficient stock for one or more items.");
         }
 
+        boolean isReserved = inventoryClient.reserveStock(order.getItems());
+        if (!isReserved) {
+            throw new InventoryException("Failed to reserve stock for one or more items.");
+        }
+
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setOrderId(order.getId());
         paymentRequest.setAmount(order.getTotalAmount());
-        paymentRequest.setPaymentMethodId("1");
+        paymentRequest.setCurrency("eur");
 
-        PaymentResponse paymentResponse = paymentClient.initiatePayment(paymentRequest);
-        if (paymentResponse.getStatus() != PaymentStatus.PENDING) {
-            throw new PaymentException("Payment initiation failed.");
+        try {
+            PaymentResponse paymentResponse = paymentClient.initiatePayment(paymentRequest);
+            if (paymentResponse.getStatus() != PaymentStatus.PENDING) {
+                inventoryClient.freeStock(order.getItems());
+                throw new PaymentException("Payment initiation failed.");
+            }
+
+            order.setStatus(OrderStatus.PENDING);
+            order.setPaymentId(paymentResponse.getPaymentId());
+            orderRepository.save(order);
+
+            return paymentResponse;
+        } catch (Exception e) {
+            inventoryClient.freeStock(order.getItems());
+            throw new PaymentException("Order creation failed: " + e.getMessage(), e);
         }
-
-        order.setStatus(OrderStatus.PENDING);
-        order.setPaymentId(paymentResponse.getPaymentId());
-        return orderRepository.save(order);
     }
+
 
     public List<Order> getOrders() {
         return orderRepository.findAll();

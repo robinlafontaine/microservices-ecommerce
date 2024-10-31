@@ -1,15 +1,12 @@
 package com.example.inventory;
 
 import com.example.inventory.orderItem.OrderItemDTO;
-import com.example.order.orderitem.OrderItem;
 import jakarta.persistence.EntityNotFoundException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -111,19 +108,22 @@ public class ProductService {
                 });
     }
 
-    public void reserveStock(List<OrderItemDTO> items) {
+    public Boolean reserveStock(List<OrderItemDTO> items) {
         if (items == null || items.isEmpty()) {
-            return;
+            return false;
         }
-        items.forEach(item -> {
-            if (item == null || item.getProductId() == null) {
-                return;
-            }
-            ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
-            if (product != null) {
-                product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
-                productDataRepository.save(product);
-            }
-        });
+        return items.stream()
+                .allMatch(item -> {
+                    if (item == null || item.getProductId() == null) {
+                        return false;
+                    }
+                    ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+                    if (product == null || product.getStockQuantity() < item.getQuantity()) {
+                        return false;
+                    }
+                    product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+                    productDataRepository.save(product);
+                    return true;
+                });
     }
 }

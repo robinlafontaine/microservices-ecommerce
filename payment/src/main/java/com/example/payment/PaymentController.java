@@ -47,6 +47,7 @@ public class PaymentController {
     public ResponseEntity<String> confirmPayment(@RequestParam String paymentId) {
         String status = paymentService.confirmPayment(paymentId);
         return ResponseEntity.ok("Payment status: " + status);
+        //TODO: on fail, free stock in inventory
     }
 }
 

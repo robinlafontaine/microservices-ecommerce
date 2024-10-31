@@ -1,5 +1,6 @@
 package com.example.order;
 
+import com.example.order.payment.PaymentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,9 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody Order order) throws Exception {
-        Order createdOrder = orderService.createOrder(order);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder.getPaymentId());
+    public ResponseEntity<PaymentResponse> createOrder(@RequestBody Order order) throws Exception {
+        PaymentResponse orderPayment = orderService.createOrder(order);
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderPayment);
     }
 
     @GetMapping

@@ -10,5 +10,5 @@ public class PaymentRequest {
 
     private BigDecimal amount;
 
-    private String paymentMethodId;
+    private String currency;
 }

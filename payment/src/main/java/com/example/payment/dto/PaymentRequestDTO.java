@@ -12,6 +12,6 @@ public class PaymentRequestDTO {
     @Positive(message = "Amount must be greater than 0")
     private BigDecimal amount;
 
-    @NotBlank(message = "Payment method ID is required")
-    private String paymentMethodId;
+    @NotBlank(message = "Currency is required")
+    private String currency;
 }
