@@ -70,6 +70,7 @@ public class PaymentGatewayClient {
     private PaymentResponseDTO buildPaymentResponse(PaymentIntent paymentIntent) {
         PaymentResponseDTO response = new PaymentResponseDTO();
         response.setPaymentId(paymentIntent.getId());
+        response.setClientSecret(paymentIntent.getClientSecret());
         response.setStatus(PaymentStatus.PENDING);
         return response;
     }

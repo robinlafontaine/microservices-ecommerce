@@ -20,12 +20,14 @@ public class OrderController {
 
     private final OrderService orderService;
     private final AuthClient authClient;
+    private final OrderRepository orderRepository;
 
     Logger logger = Logger.getLogger(OrderController.class.getName());
 
-    public OrderController(OrderService orderService, AuthClient authClient) {
+    public OrderController(OrderService orderService, AuthClient authClient, OrderRepository orderRepository) {
         this.orderService = orderService;
         this.authClient = authClient;
+        this.orderRepository = orderRepository;
     }
 
     @PostMapping("/create")
@@ -36,11 +38,19 @@ public class OrderController {
         Order order = new Order();
         order.setUserId(authClient.getUserId(token));
         order.setTotalAmount(orderRequest.getTotalAmount());
-        List<OrderItem> orderItems = orderRequest.getItems().stream()
-                .map(item -> new OrderItem(item.getProductId(), item.getQuantity()))
-                .toList();
+        logger.info("OrderItems: " + orderRequest.getItems());
+
+        List<OrderItem> orderItems = orderRequest.getItems().stream().map(item -> {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(item.getProductId());
+            orderItem.setQuantity(item.getQuantity());
+            orderItem.setOrder(order);
+            return orderItem;
+        }).toList();
 
         order.setItems(orderItems);
+
+        orderRepository.save(order);
 
         logger.info("Order user id: " + order.getUserId());
         logger.info("Order total amount: " + order.getTotalAmount());

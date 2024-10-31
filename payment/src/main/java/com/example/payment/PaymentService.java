@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 @Service
 public class PaymentService {
@@ -17,7 +18,11 @@ public class PaymentService {
     @Autowired
     private PaymentGatewayClient paymentGatewayClient;
 
+    Logger logger = Logger.getLogger(PaymentService.class.getName());
+
     public PaymentResponseDTO processPayment(PaymentRequestDTO paymentRequest) {
+
+        logger.info("Processing payment for order: " + paymentRequest.getOrderId());
         PaymentResponseDTO response = paymentGatewayClient.processPayment(paymentRequest);
 
         Payment payment = new Payment();
@@ -26,6 +31,8 @@ public class PaymentService {
         payment.setPaymentId(response.getPaymentId());
         payment.setStatus(response.getStatus());
         payment.setTimestamp(LocalDateTime.now());
+
+        logger.info("Saving payment: " + payment);
 
         paymentRepository.save(payment);
         return response;

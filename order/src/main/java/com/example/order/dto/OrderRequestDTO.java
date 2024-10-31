@@ -1,5 +1,4 @@
 package com.example.order.dto;
-import com.example.order.orderitem.OrderItem;
 import lombok.Data;
 
 import java.math.BigDecimal;

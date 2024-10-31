@@ -3,7 +3,9 @@ package com.example.order;
 import com.example.order.auth.AuthClient;
 import com.example.order.inventory.InventoryClient;
 import com.example.order.inventory.InventoryException;
+import com.example.order.orderitem.OrderItem;
 import com.example.order.payment.*;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +26,7 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
+    @Transactional
     public PaymentResponse createOrder(Order order) throws Exception {
 
         boolean isAvailable = inventoryClient.checkStock(order.getItems());
@@ -36,23 +39,31 @@ public class OrderService {
             throw new InventoryException("Failed to reserve stock for one or more items.");
         }
 
+        for (OrderItem item : order.getItems()) {
+            item.setOrder(order);
+        }
+
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setOrderId(order.getId());
         paymentRequest.setAmount(order.getTotalAmount());
         paymentRequest.setCurrency("eur");
 
         try {
+            logger.info("Initiating payment for order: " + order.getId());
             PaymentResponse paymentResponse = paymentClient.initiatePayment(paymentRequest);
+
             if (paymentResponse.getStatus() != PaymentStatus.PENDING) {
                 inventoryClient.freeStock(order.getItems());
                 throw new PaymentException("Payment initiation failed.");
             }
 
-            order.setStatus(OrderStatus.PENDING);
             order.setPaymentId(paymentResponse.getPaymentId());
+            logger.info("Order payment ID: " + order.getPaymentId());
+
             orderRepository.save(order);
 
             return paymentResponse;
+
         } catch (Exception e) {
             inventoryClient.freeStock(order.getItems());
             throw new PaymentException("Order creation failed: " + e.getMessage(), e);
