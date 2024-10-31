@@ -1,11 +1,10 @@
 package com.example.order.orderitem;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Setter
-@Getter
+@Data
+@NoArgsConstructor
 @Entity
 public class OrderItem {
 
@@ -17,4 +16,6 @@ public class OrderItem {
 
     private int quantity;
 
+    public OrderItem(Long productId, int quantity) {
+    }
 }

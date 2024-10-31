@@ -1,5 +1,6 @@
 package com.example.order;
 
+import com.example.order.auth.AuthClient;
 import com.example.order.inventory.InventoryClient;
 import com.example.order.inventory.InventoryException;
 import com.example.order.payment.*;
@@ -24,6 +25,7 @@ public class OrderService {
     }
 
     public PaymentResponse createOrder(Order order) throws Exception {
+
         boolean isAvailable = inventoryClient.checkStock(order.getItems());
         if (!isAvailable) {
             throw new InventoryException("Insufficient stock for one or more items.");
@@ -33,9 +35,6 @@ public class OrderService {
         if (!isReserved) {
             throw new InventoryException("Failed to reserve stock for one or more items.");
         }
-
-        logger.info("Order id: " + order.getId());
-        logger.info("Order total amount: " + order.getTotalAmount());
 
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setOrderId(order.getId());
