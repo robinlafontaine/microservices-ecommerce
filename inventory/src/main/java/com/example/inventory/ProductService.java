@@ -1,5 +1,6 @@
 package com.example.inventory;
 
+import com.example.order.orderitem.OrderItem;
 import jakarta.persistence.EntityNotFoundException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,5 +94,19 @@ public class ProductService {
     // --- Delete
     public void deleteProduct(Long id) {
         productDataRepository.deleteById(id);
+    }
+
+    public Boolean checkStock(List<OrderItem> items) {
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+        return items.stream()
+                .allMatch(item -> {
+                    if (item == null || item.getProductId() == null) {
+                        return false;
+                    }
+                    ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+                    return product != null && product.getStockQuantity() >= item.getQuantity();
+                });
     }
 }

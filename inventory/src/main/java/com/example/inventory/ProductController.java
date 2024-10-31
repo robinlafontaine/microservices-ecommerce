@@ -1,5 +1,6 @@
 package com.example.inventory;
 
+import com.example.order.orderitem.OrderItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,5 +96,10 @@ public class ProductController {
             logger.error("Error uploading image", e);
             return ResponseEntity.badRequest().body(Map.of("error", "Error uploading image"));
         }
+    }
+
+    @PostMapping("/check")
+    public ResponseEntity<Boolean> checkStock(@RequestBody List<OrderItem> items) {
+        return ResponseEntity.ok(productService.checkStock(items));
     }
 }
