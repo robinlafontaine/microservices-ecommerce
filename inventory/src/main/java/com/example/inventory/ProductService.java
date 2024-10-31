@@ -126,4 +126,19 @@ public class ProductService {
                     return true;
                 });
     }
+
+    public void freeStock(List<OrderItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        items.forEach(item -> {
+            if (item != null && item.getProductId() != null) {
+                ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+                if (product != null) {
+                    product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                    productDataRepository.save(product);
+                }
+            }
+        });
+    }
 }

@@ -107,4 +107,15 @@ public class ProductController {
     public ResponseEntity<Boolean> reserveStock(@RequestBody List<OrderItemDTO> items) {
         return ResponseEntity.ok(productService.reserveStock(items));
     }
+
+    @PostMapping("/free")
+    public ResponseEntity<Boolean> freeStock(@RequestBody List<OrderItemDTO> items) {
+        try {
+            productService.freeStock(items);
+        } catch (Exception e) {
+            logger.error("Error freeing stock", e);
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(true);
+    }
 }
