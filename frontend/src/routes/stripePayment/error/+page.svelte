@@ -2,9 +2,9 @@
 	import { goto } from "$app/navigation";
 </script>
 
-<h1>Thanks for your purchase!</h1>
-<p>Credit card payment was successfully processed.</p>
-<button on:click={() => goto('/')}>Go back to shop
+<h1>There was an error during your payment.</h1>
+<p>We are sorry for this inconvenience...</p>
+<button on:click={() => goto('/shopping-cart')}>Go back to shopping cart
 </button>
 
 <style>

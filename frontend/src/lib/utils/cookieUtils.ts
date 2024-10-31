@@ -30,3 +30,15 @@ export function setCookie(name: string, value: string, seconds: number): void {
 		console.error('Document is not defined');
 	}
 }
+
+export function deleteAllCookies(): void {
+	if (typeof document !== 'undefined') {
+		const cookies = document.cookie.split(';');
+		for (const cookie of cookies) {
+			const [cookieName] = cookie.trim().split('=');
+			deleteCookie(cookieName);
+		}
+	} else {
+		console.error('Document is not defined');
+	}
+}

@@ -1,10 +1,27 @@
+<svelte:head>
+	<title>Profile</title>
+	<meta name="description" content="Product" />
+</svelte:head>
+
 <script lang="ts">
 	import { goto } from "$app/navigation";
+  import { deleteAllCookies, getCookie } from "$lib/utils/cookieUtils";
+  import { onMount } from "svelte";
+
+  onMount(() => {
+    if (!getCookie('authToken')) {
+      goto('/login');
+    }
+  });
+
+  async function logout() {
+    deleteAllCookies();
+    goto('/login');
+  }
 </script>
 
-<h1>Thanks for your purchase!</h1>
-<p>Credit card payment was successfully processed.</p>
-<button on:click={() => goto('/')}>Go back to shop
+<h1>Profile</h1>
+<button on:click={() => logout()}>Log out
 </button>
 
 <style>

@@ -1,9 +1,15 @@
+<svelte:head>
+	<title>Payment</title>
+	<meta name="description" content="Payment" />
+</svelte:head>
+
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { onMount } from 'svelte'
   import { loadStripe, type Stripe, type StripeError } from '@stripe/stripe-js'
-  import { Elements, CardNumber, CardCvc, CardExpiry } from 'svelte-stripe'
-  
+  import { Elements, LinkAuthenticationElement, PaymentElement, Address } from 'svelte-stripe'
+  import { getCookie } from '$lib/utils/cookieUtils'
+
   // API key is in .env file
   import { PUBLIC_STRIPE_KEY } from '$env/static/public'
 
@@ -13,8 +19,14 @@
   let cardElement: any
   let name: any
   let processing = false
+  let elements: any
+  let clientSecret: string | null = null
 
   onMount(async () => {
+    if (getCookie('clientSecret') == null) {
+      goto('/')
+    }
+    clientSecret = getCookie('clientSecret');
     stripe = await loadStripe(PUBLIC_STRIPE_KEY)
   })
 
@@ -24,23 +36,16 @@
 
     processing = true
 
-    // create the payment intent server-side
-    const clientSecret = await createPaymentIntent()
-
     // confirm payment with stripe
     if (!stripe) {
-      let error = { message: 'Stripe has not been initialized.' }
-      processing = false
-      return
+      error = { message: 'Stripe is not loaded', type: 'validation_error' };
+      processing = false;
+      return;
     }
 
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name
-        }
-      }
+    const result = await stripe.confirmPayment({
+      elements,
+      redirect: 'if_required'
     })
 
     // log results, for debugging
@@ -50,9 +55,10 @@
       // payment failed, notify user
       error = result.error
       processing = false
+      goto('/stripePayment/error')
     } else {
       // payment succeeded, redirect to "thank you" page
-      goto('/examples/credit-card/thanks')
+      goto('/stripePayment/thanks');
     }
   }
 </script>
@@ -63,25 +69,33 @@
   <p class="error">{error.message} Please try again.</p>
 {/if}
 
-<Elements {stripe}>
-  <form on:submit|preventDefault={submit}>
-    <input name="name" bind:value={name} placeholder="Your name" disabled={processing} />
-    <CardNumber bind:element={cardElement} classes={{ base: 'input' }} />
+{#if clientSecret}
+  <Elements
+    {stripe}
+    {clientSecret}
+    theme="flat"
+    labels="floating"
+    variables={{ colorPrimary: '#7c4dff' }}
+    rules={{ '.Input': { border: 'solid 1px #0002' } }}
+    bind:elements
+  >
+    <form on:submit|preventDefault={submit}>
+      <LinkAuthenticationElement />
+      <PaymentElement />
+      <Address mode="billing" />
 
-    <div class="row">
-      <CardExpiry classes={{ base: 'input' }} />
-      <CardCvc classes={{ base: 'input' }} />
-    </div>
-
-    <button disabled={processing}>
-      {#if processing}
-        Processing...
-      {:else}
-        Pay
-      {/if}
-    </button>
-  </form>
-</Elements>
+      <button disabled={processing}>
+        {#if processing}
+          Processing...
+        {:else}
+          Pay
+        {/if}
+      </button>
+    </form>
+  </Elements>
+{:else}
+  Loading...
+{/if}
 
 <style>
   .error {
@@ -94,24 +108,6 @@
     flex-direction: column;
     gap: 10px;
     margin: 2rem 0;
-  }
-
-  .row {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-  }
-
-  input,
-  :global(.input) {
-    border: solid 1px var(--gray-color);
-    padding: 1rem;
-    border-radius: 5px;
-    background: white;
-  }
-
-  .row :global(.input) {
-    width: 20%;
   }
 
   button {

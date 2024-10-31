@@ -8,6 +8,13 @@
   import { handleLogin } from '$lib/services/authService';
   import { deleteCookie } from '$lib/utils/cookieUtils';
 	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
+
+  onMount(() => {
+    if (document.cookie.includes('authToken')) {
+      goto('/profile');
+    }
+  });
 
   const form = useForm();
   let _email = '';
