@@ -16,10 +16,10 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) throws Exception {
+    @PostMapping("/create")
+    public ResponseEntity<String> createOrder(@RequestBody Order order) throws Exception {
         Order createdOrder = orderService.createOrder(order);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder.getPaymentId());
     }
 
     @GetMapping

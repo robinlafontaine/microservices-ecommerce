@@ -33,9 +33,10 @@ public class Order {
 
     private LocalDateTime orderDate;
 
-    private Long paymentId;
+    private String paymentId;
 
     public Order() {
+        this.orderDate = LocalDateTime.now();
     }
 
 }
