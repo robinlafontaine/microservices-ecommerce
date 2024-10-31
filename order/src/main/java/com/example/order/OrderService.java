@@ -2,10 +2,7 @@ package com.example.order;
 
 import com.example.order.inventory.InventoryClient;
 import com.example.order.inventory.InventoryException;
-import com.example.order.payment.PaymentClient;
-import com.example.order.payment.PaymentException;
-import com.example.order.payment.PaymentResponse;
-import com.example.order.payment.PaymentStatus;
+import com.example.order.payment.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +27,12 @@ public class OrderService {
             throw new InventoryException("Insufficient stock for one or more items.");
         }
 
-        PaymentResponse paymentResponse = paymentClient.initiatePayment(order.getTotalAmount(), order.getId());
+        PaymentRequest paymentRequest = new PaymentRequest();
+        paymentRequest.setOrderId(order.getId());
+        paymentRequest.setAmount(order.getTotalAmount());
+        paymentRequest.setPaymentMethodId("1");
+
+        PaymentResponse paymentResponse = paymentClient.initiatePayment(paymentRequest);
         if (paymentResponse.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentException("Payment initiation failed.");
         }

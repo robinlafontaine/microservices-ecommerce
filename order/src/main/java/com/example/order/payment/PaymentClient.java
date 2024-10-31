@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 public interface PaymentClient {
 
     @PostMapping("/payments/initiate")
-    PaymentResponse initiatePayment(@RequestParam BigDecimal amount, @RequestParam Long orderId);
+    PaymentResponse initiatePayment(@RequestParam PaymentRequest paymentRequest);
 
     @GetMapping("/payments/status")
     PaymentStatus getPaymentStatus(@RequestParam Long paymentId);
