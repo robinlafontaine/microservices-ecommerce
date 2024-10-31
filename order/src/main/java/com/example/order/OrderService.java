@@ -6,6 +6,7 @@ import com.example.order.payment.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 @Service
 public class OrderService {
@@ -13,6 +14,8 @@ public class OrderService {
     private final PaymentClient paymentClient;
     private final InventoryClient inventoryClient;
     private final OrderRepository orderRepository;
+
+    Logger logger = Logger.getLogger(OrderService.class.getName());
 
     public OrderService(PaymentClient paymentClient, InventoryClient inventoryClient, OrderRepository orderRepository) {
         this.paymentClient = paymentClient;
@@ -30,6 +33,9 @@ public class OrderService {
         if (!isReserved) {
             throw new InventoryException("Failed to reserve stock for one or more items.");
         }
+
+        logger.info("Order id: " + order.getId());
+        logger.info("Order total amount: " + order.getTotalAmount());
 
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setOrderId(order.getId());
