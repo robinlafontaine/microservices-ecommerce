@@ -1,42 +1,22 @@
-<script>
+<script lang="ts">
   import { goto } from '$app/navigation'
   import { onMount } from 'svelte'
-  import { loadStripe } from '@stripe/stripe-js'
-  import Elements from '$lib/stripe/Elements.svelte'
-  import CardNumber from '$lib/stripe/CardNumber.svelte'
-  import CardExpiry from '$lib/stripe/CardExpiry.svelte'
-  import CardCvc from '$lib/stripe/CardCvc.svelte'
+  import { loadStripe, type Stripe, type StripeError } from '@stripe/stripe-js'
+  import { Elements, CardNumber, CardCvc, CardExpiry } from 'svelte-stripe'
+  
   // API key is in .env file
   import { PUBLIC_STRIPE_KEY } from '$env/static/public'
 
-  /**
-	 * @type {import("@stripe/stripe-js").Stripe | null}
-	 */
-  let stripe = null
-  /**
-	 * @type {import("@stripe/stripe-js").StripeError | null}
-	 */
-  let error = null
-  /**
-	 * @type {any}
-	 */
-  let cardElement
-  /**
-	 * @type {any}
-	 */
-  let name
+
+  let stripe: Stripe | null = null
+  let error: StripeError | null = null
+  let cardElement: any
+  let name: any
   let processing = false
 
   onMount(async () => {
     stripe = await loadStripe(PUBLIC_STRIPE_KEY)
   })
-
-  async function createPaymentIntent() {
-    const response = await fetch('/examples/credit-card/payment-intent', { method: 'POST' })
-    const { clientSecret } = await response.json()
-
-    return clientSecret
-  }
 
   async function submit() {
     // avoid processing duplicates

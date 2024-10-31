@@ -6,6 +6,7 @@
   import { page } from '$app/stores';
 	import { error } from '@sveltejs/kit';
   import { addToCart } from '$lib/services/cartService';
+	import { goto } from '$app/navigation';
 
   let product: ProductResponseDTO | null = null;
   let products: ProductResponseDTO[] = [];
@@ -77,7 +78,7 @@
           </div>
           {#if _canManipulate}
             <div class="buttons">
-              <button class="edit-product"> 
+              <button class="edit-product" on:click={() => (goto('/update-product/' + productId))}> 
                 <span class="material-symbols-outlined product-icons">
                 edit
                 </span>

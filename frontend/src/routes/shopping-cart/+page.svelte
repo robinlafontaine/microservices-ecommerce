@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getCart, addToCart } from '$lib/services/cartService';
+  import { createOrder } from '$lib/services/orderService';
   import type { CartItemDTO } from '$lib/types/cartTypes';
 	import { goto } from '$app/navigation';
+	import { setCookie } from '$lib/utils/cookieUtils';
 
   let cart = [] as CartItemDTO[];
   let total = 0;
@@ -27,6 +29,16 @@
     await addToCart(productId, 0);
     window.location.reload();
   }
+
+  async function checkout() {
+    const response = await createOrder(total);
+    if (!response.success) {
+      console.error(response.error);
+      return;
+    } 
+    setCookie('clientSecret', response.data.clientSecret, 600);
+    goto('/stripePayment');
+  }
 </script>
 
 <body>
@@ -42,7 +54,7 @@
   {:else}
   <div class="total-container">
     <h2>Total : {total}€</h2>
-    <button class="checkout" on:click={() => goto('/stripePayment')}>Checkout</button>
+    <button class="checkout" on:click={() => checkout()}>Checkout</button>
   </div>
   <div class="cart-list">
     {#each cart as item}

@@ -20,3 +20,13 @@ export function deleteCookie(name: string): void {
 		console.error('Document is not defined');
 	}
 }
+
+export function setCookie(name: string, value: string, seconds: number): void {
+	if (typeof document !== 'undefined') {
+		const date = new Date();
+		date.setTime(date.getTime() + seconds * 1000);
+		document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/;`;
+	} else {
+		console.error('Document is not defined');
+	}
+}
