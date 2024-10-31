@@ -1,7 +1,7 @@
-import { getCookie } from '$lib/utils/getCookie';
+import { goto } from '$app/navigation';
+import { getCookie } from '$lib/utils/cookieUtils';
 
 export async function showProducts() {
-	console.log(document.cookie.split('=')[1]);
 	try {
 		const response = await fetch('http://localhost:8080/inventory/products/search', {
 			method: 'GET',
@@ -11,6 +11,33 @@ export async function showProducts() {
 			}
 		});
 
+		if (response.ok) {
+			const result = await response.json();
+			return { success: true, data: result };
+		} else {
+			const error = await response.json();
+			return { success: false, error };
+		}
+	} catch (err) {
+		return {
+			success: false,
+			error: err instanceof Error ? err.message : 'An unknown error occurred'
+		};
+	}
+}
+
+export async function showProduct(productId: string) {
+	try {
+		const response = await fetch(
+			`http://localhost:8080/inventory/products/search?id=${productId}`,
+			{
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${getCookie('authToken')}`
+				}
+			}
+		);
 		if (response.ok) {
 			const result = await response.json();
 			return { success: true, data: result };
@@ -37,7 +64,6 @@ export async function checkAuth() {
 		});
 		if (response.status === 400) {
 			let new_response = { success: true, data: 'admin' };
-			console.log(new_response);
 			return new_response;
 		} else {
 			const error = await response.json();
@@ -53,8 +79,7 @@ export async function checkAuth() {
 
 export async function uploadImage(file: File): Promise<string> {
 	const formData = new FormData();
-	formData.append('file', file); // `file` is a File object
-	console.log('File to upload:', file);
+	formData.append('file', file);
 
 	try {
 		const response = await fetch('http://localhost:8080/inventory/products/upload', {
@@ -66,9 +91,8 @@ export async function uploadImage(file: File): Promise<string> {
 		});
 
 		if (response.ok) {
-			const result = await response.json(); // Parse JSON response
-			console.log('Upload successful:', result.url);
-			return result.url; // Return the image URL from the response body
+			const result = await response.json();
+			return result.url;
 		} else {
 			const errorResult = await response.json();
 			console.error('Upload failed:', errorResult.error);
@@ -120,9 +144,10 @@ export async function deleteProduct(productId: number): Promise<void> {
 		const response = await fetch(`http://localhost:8080/inventory/products/${productId}`, {
 			method: 'DELETE',
 			headers: {
-				Authorization: `Bearer ${document.cookie.split('=')[1]}`
+				Authorization: `Bearer ${getCookie('authToken')}`
 			}
 		});
+		goto('/');
 	} catch (error) {
 		console.error('An error occurred:', (error as Error).message);
 	}

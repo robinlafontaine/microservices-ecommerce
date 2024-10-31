@@ -7,9 +7,7 @@
 
 	onMount(async () => {
 		const canManipulate = await checkAuth();
-				console.log(canManipulate);
 				if (canManipulate.success) {
-					console.log('User can manipulate products');
 					_canManipulate = true;
 				} else {
 					console.error('User cannot manipulate products');
@@ -38,7 +36,7 @@
 				</span>
 			</a>
 		{/if}
-		<a href="/stripePayment">
+		<a href="/shopping-cart">
 			<span class="material-symbols-outlined">
 				shopping_cart
 				</span>
