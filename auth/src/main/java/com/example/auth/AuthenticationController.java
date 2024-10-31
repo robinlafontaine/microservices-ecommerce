@@ -1,5 +1,6 @@
 package com.example.auth;
 
+import io.jsonwebtoken.Claims;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -230,6 +231,14 @@ public class AuthenticationController {
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+    }
+
+    @GetMapping("/user/id")
+    public ResponseEntity<Integer> getUserId(@RequestHeader String Authorization) {
+        String token = Authorization.substring(7);
+        String userEmail = jwtUtil.extractEmail(token);
+        Integer id = userDataRepository.findByEmail(userEmail).get(0).getId();
+        return ResponseEntity.ok(id);
     }
 
 }
