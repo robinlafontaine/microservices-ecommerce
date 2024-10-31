@@ -13,7 +13,7 @@ public interface InventoryClient {
     @PostMapping("/inventory/products/check")
     boolean checkStock(@RequestBody List<OrderItem> items);
 
-    @PostMapping("/inventory/reserve")
+    @PostMapping("/inventory/products/reserve")
     void reserveStock(@RequestBody List<OrderItem> items);
 }
 

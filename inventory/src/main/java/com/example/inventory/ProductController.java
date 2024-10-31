@@ -1,6 +1,6 @@
 package com.example.inventory;
 
-import com.example.order.orderitem.OrderItem;
+import com.example.inventory.orderItem.OrderItemDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +99,13 @@ public class ProductController {
     }
 
     @PostMapping("/check")
-    public ResponseEntity<Boolean> checkStock(@RequestBody List<OrderItem> items) {
+    public ResponseEntity<Boolean> checkStock(@RequestBody List<OrderItemDTO> items) {
         return ResponseEntity.ok(productService.checkStock(items));
+    }
+
+    @PostMapping("/reserve")
+    public ResponseEntity<Void> reserveStock(@RequestBody List<OrderItemDTO> items) {
+        productService.reserveStock(items);
+        return ResponseEntity.noContent().build();
     }
 }

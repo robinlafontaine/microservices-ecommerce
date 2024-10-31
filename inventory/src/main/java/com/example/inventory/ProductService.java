@@ -1,5 +1,6 @@
 package com.example.inventory;
 
+import com.example.inventory.orderItem.OrderItemDTO;
 import com.example.order.orderitem.OrderItem;
 import jakarta.persistence.EntityNotFoundException;
 import org.jetbrains.annotations.NotNull;
@@ -96,7 +97,7 @@ public class ProductService {
         productDataRepository.deleteById(id);
     }
 
-    public Boolean checkStock(List<OrderItem> items) {
+    public Boolean checkStock(List<OrderItemDTO> items) {
         if (items == null || items.isEmpty()) {
             return false;
         }
@@ -108,5 +109,21 @@ public class ProductService {
                     ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
                     return product != null && product.getStockQuantity() >= item.getQuantity();
                 });
+    }
+
+    public void reserveStock(List<OrderItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        items.forEach(item -> {
+            if (item == null || item.getProductId() == null) {
+                return;
+            }
+            ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+            if (product != null) {
+                product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+                productDataRepository.save(product);
+            }
+        });
     }
 }
