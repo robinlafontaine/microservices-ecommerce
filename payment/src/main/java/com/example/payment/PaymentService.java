@@ -38,33 +38,12 @@ public class PaymentService {
         return response;
     }
 
-    public void handleStripeWebhook(String payload, String sigHeader) {
-        paymentGatewayClient.handleWebhook(payload, sigHeader);
-    }
-
     public String getPaymentStatus(String paymentId) {
         Payment payment = paymentRepository.findByPaymentId(paymentId)
                 .orElseThrow(() -> new PaymentException("Payment not found"));
         return payment.getStatus().name();
     }
 
-    public String confirmPayment(String paymentId) {
-        HashMap<Integer, String> status = paymentGatewayClient.confirmPayment(paymentId);
-        if (status.containsKey(200)) {
-            updatePaymentStatus(paymentId, PaymentStatus.COMPLETED);
-            return status.get(200);
-        } else {
-            updatePaymentStatus(paymentId, PaymentStatus.FAILED);
-            return status.get(400);
-        }
-    }
-
-    private void updatePaymentStatus(String paymentId, PaymentStatus status) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new PaymentException("Payment not found"));
-        payment.setStatus(status);
-        paymentRepository.save(payment);
-    }
 }
 
 

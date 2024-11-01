@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @Component
 public class PaymentGatewayClient {
@@ -38,9 +39,7 @@ public class PaymentGatewayClient {
 
             return buildPaymentResponse(paymentIntent);
         } catch (StripeException e) {
-            // Log the exception details for easier debugging
-            System.err.println("Stripe error occurred: " + e.getMessage());
-            throw new PaymentException("Payment processing failed: " + e.getMessage());
+            throw new PaymentException("Stripe error occurred: " + e.getMessage());
         }
     }
 
@@ -58,8 +57,6 @@ public class PaymentGatewayClient {
                 .setAmount(paymentRequest.getAmount().multiply(BigDecimal.valueOf(100)).longValue())
                 .setCurrency(paymentRequest.getCurrency())
                 .setDescription("Payment for Order ID: " + paymentRequest.getOrderId())
-                // Uncomment for return URL
-                //.setReturnUrl(System.getenv("PAYMENT_RETURN_URL"))
                 .setAutomaticPaymentMethods(PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                         .setEnabled(true)
                         .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
@@ -73,38 +70,6 @@ public class PaymentGatewayClient {
         response.setClientSecret(paymentIntent.getClientSecret());
         response.setStatus(PaymentStatus.PENDING);
         return response;
-    }
-
-    public HashMap<Integer, String> confirmPayment(String paymentId) {
-        try {
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentId);
-            PaymentIntent confirmedPaymentIntent = paymentIntent.confirm();
-            HashMap<Integer, String> response = new HashMap<>();
-
-            if ("succeeded".equals(confirmedPaymentIntent.getStatus())) {
-                response.put(200, "Payment status: " + confirmedPaymentIntent.getStatus());
-            } else {
-                response.put(400, "Payment status: " + confirmedPaymentIntent.getStatus());
-            }
-            return response;
-        } catch (StripeException e) {
-            throw new RuntimeException("Error confirming payment: " + e.getMessage());
-        }
-    }
-
-    public void handleWebhook(String payload, String sigHeader) {
-        String endpointSecret = "your_webhook_secret"; // Retrieve from Stripe
-
-        try {
-            Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-            if ("payment_intent.succeeded".equals(event.getType())) {
-                PaymentIntent intent = (PaymentIntent) event.getDataObjectDeserializer()
-                        .getObject().orElseThrow();
-                // Process the successful payment intent here
-            }
-        } catch (StripeException e) {
-            throw new PaymentException("Webhook error: " + e.getMessage());
-        }
     }
 
 }

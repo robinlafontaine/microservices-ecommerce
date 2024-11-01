@@ -1,64 +1,54 @@
 <svelte:head>
-	<title>Payment</title>
-	<meta name="description" content="Payment" />
+  <title>Payment</title>
+  <meta name="description" content="Payment" />
 </svelte:head>
 
 <script lang="ts">
-  import { goto } from '$app/navigation'
-  import { onMount } from 'svelte'
-  import { loadStripe, type Stripe, type StripeError } from '@stripe/stripe-js'
-  import { Elements, LinkAuthenticationElement, PaymentElement, Address } from 'svelte-stripe'
-  import { getCookie } from '$lib/utils/cookieUtils'
+  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+  import { loadStripe, type Stripe, type StripeError } from '@stripe/stripe-js';
+  import { Elements, LinkAuthenticationElement, PaymentElement, Address } from 'svelte-stripe';
+  import { getCookie } from '$lib/utils/cookieUtils';
 
-  // API key is in .env file
-  import { PUBLIC_STRIPE_KEY } from '$env/static/public'
+  import { PUBLIC_STRIPE_KEY } from '$env/static/public';
 
-
-  let stripe: Stripe | null = null
-  let error: StripeError | null = null
-  let cardElement: any
-  let name: any
-  let processing = false
-  let elements: any
-  let clientSecret: string | null = null
+  let stripe: Stripe | null = null;
+  let error: StripeError | null = null;
+  let processing = false;
+  let elements: any;
+  let clientSecret: string | null = null;
 
   onMount(async () => {
-    if (getCookie('clientSecret') == null) {
-      goto('/')
-    }
     clientSecret = getCookie('clientSecret');
-    stripe = await loadStripe(PUBLIC_STRIPE_KEY)
-  })
 
-  async function submit() {
-    // avoid processing duplicates
-    if (processing) return
-
-    processing = true
-
-    // confirm payment with stripe
-    if (!stripe) {
-      error = { message: 'Stripe is not loaded', type: 'validation_error' };
-      processing = false;
+    if (!clientSecret) {
+      goto('/'); // Redirect to home if no clientSecret is available
       return;
     }
+
+    try {
+      stripe = await loadStripe(PUBLIC_STRIPE_KEY);
+    } catch (e) {
+      error = { message: 'Failed to load Stripe. Please refresh the page or try again later.', type: 'api_error' };
+    }
+  });
+
+  async function submit() {
+    if (processing || !stripe || !elements) return; // Ensure no duplicate processing
+
+    processing = true;
 
     const result = await stripe.confirmPayment({
       elements,
       redirect: 'if_required'
-    })
-
-    // log results, for debugging
-    console.log({ result })
+    });
 
     if (result.error) {
-      // payment failed, notify user
-      error = result.error
-      processing = false
-      goto('/stripePayment/error')
+      error = result.error; // Display error message on failure
+      processing = false;
+      goto('/stripePayment/error');
     } else {
-      // payment succeeded, redirect to "thank you" page
-      goto('/stripePayment/thanks');
+      goto('/stripePayment/thanks'); // Redirect to thank-you page on success
     }
   }
 </script>
@@ -69,7 +59,7 @@
   <p class="error">{error.message} Please try again.</p>
 {/if}
 
-{#if clientSecret}
+{#if stripe && clientSecret}
   <Elements
     {stripe}
     {clientSecret}
@@ -94,7 +84,7 @@
     </form>
   </Elements>
 {:else}
-  Loading...
+  <p>Loading payment information...</p>
 {/if}
 
 <style>

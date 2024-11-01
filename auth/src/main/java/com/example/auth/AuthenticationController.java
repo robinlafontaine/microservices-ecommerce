@@ -79,6 +79,28 @@ public class AuthenticationController {
         }
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody UserRegisterDTO userRegister) {
+        if (!userDataRepository.findByEmail(userRegister.getEmail()).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
+        }
+
+        if (!isValidPassword(userRegister.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password does not meet security requirements");
+        }
+
+        UserData userData = new UserData();
+        userData.setFirstName(userRegister.getFirstName());
+        userData.setLastName(userRegister.getLastName());
+        userData.setEmail(userRegister.getEmail());
+        userData.setPasswordHash(passwordEncoder.encode(userRegister.getPassword()));
+        userData.setRole(Roles.USER);
+
+        userDataRepository.save(userData);
+
+        return ResponseEntity.ok("User registered successfully");
+    }
+
     /**
      * Method to authenticate the user using the AuthenticationManager.
      *

@@ -20,7 +20,9 @@ public class RouteRoles {
         Map.entry("/inventory/products/check", List.of("USER", "ADMIN")),
         Map.entry("/inventory/products/reserve", List.of("USER", "ADMIN")),
         Map.entry("/inventory/products/free", List.of("USER", "ADMIN")),
-        Map.entry("/inventory/**", List.of("ADMIN")),
+        Map.entry("/inventory/products/create", List.of("ADMIN")),
+        Map.entry("/inventory/products/upload", List.of("ADMIN")),
+        Map.entry("/inventory/products/{id}", List.of("ADMIN")),
         Map.entry("/payments/**", List.of("USER", "ADMIN")),
         Map.entry("/orders/**", List.of("USER", "ADMIN")),
         Map.entry("/zipkin/**", List.of("ADMIN"))

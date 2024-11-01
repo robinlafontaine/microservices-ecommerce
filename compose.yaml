@@ -73,11 +73,11 @@ services:
       - "traefik.enable=true"
 
       - "traefik.http.routers.auth-authenticate.entrypoints=web"
-      - "traefik.http.routers.auth-authenticate.rule=Path(`/auth/authenticate`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.auth-authenticate.rule=(Path(`/auth/authenticate`) || Path(`/auth/register`)) && !Method(`OPTIONS`)"
       - "traefik.http.routers.auth-authenticate.middlewares="
 
       - "traefik.http.routers.auth.entrypoints=web"
-      - "traefik.http.routers.auth.rule=PathPrefix(`/auth`) && !Path(`/auth/authenticate`) && !Method(`OPTIONS`)"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/auth`) && !Path(`/auth/authenticate`) && !Path(`/auth/register`) && !Method(`OPTIONS`)"
       - "traefik.http.routers.auth.middlewares=jwt-auth@file"
 
       - "traefik.http.routers.preflight-auth.rule=PathPrefix(`/auth`) && Method(`OPTIONS`)"

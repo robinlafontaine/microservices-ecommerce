@@ -33,7 +33,7 @@ public class ProductController {
     }
 
     // --- Create
-    @PostMapping()
+    @PostMapping("/create")
     public ResponseEntity<Void> createProduct(@RequestBody(required = false) ProductData productData) {
         if (productData == null) {
             return ResponseEntity.badRequest().body(null);
