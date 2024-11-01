@@ -2,6 +2,8 @@
 
 This project is an eCommerce platform designed with a microservices architecture to provide a scalable and resilient shopping experience. Each core functionality—authentication, order processing, inventory management, payment handling, and centralized configuration—is managed by its own dedicated service.
 
+![Architecture Diagram](diagram.svg)
+
 ## Project Structure
 
 Refer to the file structure within the repository to understand the layout and organization of each microservice, configuration, database scripts, and frontend.
