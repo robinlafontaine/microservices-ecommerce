@@ -79,6 +79,24 @@ docker-compose -f compose.yaml up --build
 ```
 3. **Access Website**:
 - Frontend: `http://localhost:3000`
+ 
+4. **Default User Credentials**
+- Admin:
+   - admin@example.com
+   - password
+- User:
+   - user@example.com
+   - password
+- Create a custom user (`USER` role) at `/register`
+
+5. **Payment Method**
+- Stripe's test API allows for *fake* credit cards such as :
+```
+Card n°: 4242424242424242
+CVC: Any 3 digits (ex: 123)
+Date: Any future date (ex: 12/35)
+```
+See more in Stripe's API [docs](https://docs.stripe.com/testing)
 
 ## Project Configuration
 - Environment Variables: The [ecommerce-config](https://github.com/robinlafontaine/ecommerce-config) repository stores the configurations for each service. Other variables are stored in the Docker Compose file.
