@@ -55,7 +55,7 @@ export async function showProduct(productId: string) {
 
 export async function checkAuth() {
 	try {
-		const response = await fetch(`http://localhost:8080/inventory/products`, {
+		const response = await fetch(`http://localhost:8080/inventory/products/create`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export async function createProduct(
 	stockQuantity: number
 ): Promise<void> {
 	try {
-		const response = await fetch('http://localhost:8080/inventory/products', {
+		const response = await fetch('http://localhost:8080/inventory/products/create', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -130,25 +130,67 @@ export async function createProduct(
 		});
 
 		if (response.ok) {
-			console.log('Product created successfully');
+			alert('Product created successfully');
+			goto('/');
 		} else {
-			console.error('Failed to create product:', response.statusText);
+			alert('Failed to create product:');
 		}
 	} catch (error) {
+		alert('Failed to create product:');
+		console.error('An error occurred:', (error as Error).message);
+	}
+}
+
+export async function updateProduct(
+	productId: string,
+	productName: string,
+	description: string,
+	imageUrl: string,
+	price: number,
+	categoryId: number,
+	stockQuantity: number
+): Promise<void> {
+	try {
+		const response = await fetch(`http://localhost:8080/inventory/products/edit/${productId}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${getCookie('authToken')}`
+			},
+			body: JSON.stringify({
+				productName,
+				description,
+				imageUrl,
+				price,
+				categoryId,
+				stockQuantity
+			})
+		});
+
+		if (response.ok) {
+			alert('Product updated successfully');
+			goto('/');
+		} else {
+			alert('Failed to update product:');
+		}
+	} catch (error) {
+		alert('Failed to update product:');
 		console.error('An error occurred:', (error as Error).message);
 	}
 }
 
 export async function deleteProduct(productId: number): Promise<void> {
 	try {
-		const response = await fetch(`http://localhost:8080/inventory/products/${productId}`, {
+		const response = await fetch(`http://localhost:8080/inventory/products/delete/${productId}`, {
 			method: 'DELETE',
 			headers: {
 				Authorization: `Bearer ${getCookie('authToken')}`
 			}
 		});
+		alert('Product deleted successfully');
 		goto('/');
 	} catch (error) {
+		alert('Failed to delete product:');
 		console.error('An error occurred:', (error as Error).message);
 	}
 }

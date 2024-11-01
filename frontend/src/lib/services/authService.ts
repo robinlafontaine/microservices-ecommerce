@@ -26,6 +26,38 @@ export async function handleLogin(email: string, password: string) {
 	}
 }
 
+export async function handleRegister(
+	firstName: string,
+	lastName: string,
+	email: string,
+	password: string
+) {
+	try {
+		const response = await fetch('http://localhost:8080/auth/register', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ firstName, lastName, email, password })
+		});
+
+		console.log(response);
+
+		if (response.ok) {
+			deleteCookie('authToken');
+			return { success: true };
+		} else {
+			const error = await response.json();
+			return { success: false, error };
+		}
+	} catch (err) {
+		return {
+			success: false,
+			error: err instanceof Error ? err.message : 'An unknown error occurred'
+		};
+	}
+}
+
 export async function getUserId() {
 	try {
 		const response = await fetch('http://localhost:8080/auth/user/id', {

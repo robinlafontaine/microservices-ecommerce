@@ -1,3 +1,8 @@
+<svelte:head>
+	<title>Thanks !</title>
+	<meta name="description" content="Thanks !" />
+</svelte:head>
+
 <script lang="ts">
 	import { goto } from "$app/navigation";
 </script>

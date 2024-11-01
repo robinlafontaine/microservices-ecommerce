@@ -1,59 +1,55 @@
 <svelte:head>
-	<title>Update product</title>
-	<meta name="description" content="Update product" />
+	<title>Update Product</title>
+	<meta name="description" content="Update Product" />
 </svelte:head>
 
 <script lang="ts">
-  import { useForm, validators, HintGroup, Hint, email, required } from "svelte-use-form";
-  import { showProduct } from '$lib/services/productService';
+  import { useForm, validators, HintGroup, Hint, required } from "svelte-use-form";
+  import { uploadImage, updateProduct, showProduct  } from '$lib/services/productService';
   import type { ProductResponseDTO } from '$lib/types/productTypes';
-  import { uploadImage, createProduct  } from '$lib/services/productService';
-  import { page } from '$app/stores';
+	import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
 	import { onMount } from "svelte";
 
   const form = useForm();
+  let productId = $page.params.productId;
   let productName = '';
   let description = '';
-
-  let image = '';
+  let image: any 
   let price = 0;
   let categoryId = 0;
   let stockQuantity = 0;
+  let data: ProductResponseDTO;
 
-  let product: ProductResponseDTO | null = null;
-  let productId = $page.params.productId;
-
-  onMount(async () => {
+  onMount (async () => {
     const response = await showProduct(productId);
-    if (response.success) {
-      product = response.data[0];
-      if (product === null) {
-        throw new Error('Product not found');
-      }
-      productName = product.productName;
-      description = product.description;
-      image = product.imageUrl;
-      price = product.price;
-      categoryId = product.categoryId;
-      stockQuantity = product.stockQuantity;
-    } else {
-      console.error(response.error);
-    }
+    data = await response.data[0];
+    console.log(data);
+    productName = data.productName;
+    description = data.description;
+    price = data.price;
+    categoryId = data.categoryId;
+    stockQuantity = data.stockQuantity;
+    image = data.imageUrl;
   });
 
   async function handleSubmit(event: { preventDefault: () => void; }) {
     event.preventDefault();
-
-    // @ts-ignore
-    const image_file = document.getElementById('image_file').files[0];
+    const imageInput = document.getElementById('image_file') as HTMLInputElement;
+    const image_file = imageInput?.files ? imageInput.files[0] : null;
     console.log(image_file);
-    let imageUrl = await uploadImage(image_file);
-    let result = await createProduct(productName, description, imageUrl, price, categoryId, stockQuantity);
+    let imageUrl = '';
+    if (image_file) {
+      imageUrl = await uploadImage(image_file);
+    }
+    await updateProduct(productId, productName, description, imageUrl, price, categoryId, stockQuantity);
+    alert('Product updated successfully');
+    goto('/');
   }
 </script>
 
 <form use:form on:submit={handleSubmit}>
-  <h1>Update Product {productId} ({productName})</h1> 
+  <h1>Update Product</h1>
   <div class="form-element">
     <label for="productName">Product Name</label>
     <input type="text" placeholder="Product name" name="productName" bind:value={productName} use:validators={[required]} />
@@ -73,9 +69,11 @@
   <div class="form-element">
     <label for="image">Image</label>
     <input id="image_file" type="file" placeholder="Image" name="image" bind:value={image} use:validators={[required]} />
+    <HintGroup for="image">
+      <Hint on="required">Please choose an image</Hint>
+    </HintGroup>
+    <img src="{image}" alt="{productName}" />
   </div>
-
-  <img src={image} alt="{productName}" />
 
   <div class="form-element">
     <label for="price">Price</label>
@@ -101,6 +99,12 @@
 		border-color: red;
 		outline-color: red;
 	}
+
+  img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+  }
 
   form {
     display: grid;
@@ -144,11 +148,5 @@
       border: 3px solid #ccc;
       cursor: not-allowed;
     }
-  }
-
-  img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
   }
 </style>

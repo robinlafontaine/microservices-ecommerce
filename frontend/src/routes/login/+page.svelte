@@ -54,6 +54,7 @@
   
     <button disabled={!$form.valid}>Login</button>
   </form>
+  <a href="/register">Don't have an account? Register here</a>
 </div>
 
 <style>
@@ -64,6 +65,7 @@
 
   .container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 100%;

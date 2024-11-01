@@ -60,6 +60,13 @@
 {/if}
 
 {#if stripe && clientSecret}
+  <p>This is a test payment page. Please try to pay with the following test card details:</p>
+  <ul>
+    <li>Card number: 4242 4242 4242 4242</li>
+    <li>Expiry date: Any future date</li>
+    <li>CVC: Any 3 digits</li>
+    <li>Random informations for the rest of the fields</li>
+  </ul>
   <Elements
     {stripe}
     {clientSecret}
@@ -101,12 +108,26 @@
   }
 
   button {
-    padding: 1rem;
+    background-color: var(--color-theme-1);
+    color: var(--color-theme-2);
+    border: 3px solid var(--color-theme-1);
     border-radius: 5px;
-    border: solid 1px #ccc;
-    color: white;
-    background: var(--link-color);
-    font-size: 1.2rem;
-    margin: 1rem 0;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.1s, color 0.1s;
+    padding: .5rem;
+
+    &:hover {
+      background-color: var(--color-theme-2);
+      color: var(--color-theme-1);
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      color: #666;
+      border: 3px solid #ccc;
+      cursor: not-allowed;
+    }
   }
 </style>

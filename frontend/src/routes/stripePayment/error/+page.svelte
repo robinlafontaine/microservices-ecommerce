@@ -1,3 +1,8 @@
+<svelte:head>
+	<title>Payment error</title>
+	<meta name="description" content="Payment error" />
+</svelte:head>
+
 <script lang="ts">
 	import { goto } from "$app/navigation";
 </script>

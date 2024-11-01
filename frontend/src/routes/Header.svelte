@@ -4,11 +4,15 @@
 	import logo from '$lib/images/logo.svg';
 
 	let _canManipulate = false;
+	let hasreload = false;
 
 	onMount(async () => {
 		const canManipulate = await checkAuth();
 				if (canManipulate.success) {
 					_canManipulate = true;
+					if (!hasreload) {
+						hasreload = true;
+					}
 				} else {
 					console.error('User cannot manipulate products');
 				}

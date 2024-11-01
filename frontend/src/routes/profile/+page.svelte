@@ -1,6 +1,6 @@
 <svelte:head>
 	<title>Profile</title>
-	<meta name="description" content="Product" />
+	<meta name="description" content="Profile" />
 </svelte:head>
 
 <script lang="ts">

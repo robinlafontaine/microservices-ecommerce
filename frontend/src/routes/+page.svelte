@@ -1,9 +1,5 @@
 <script>
 	import ShopGrid from './ShopGrid.svelte';
-	
-	// if (!document.cookie.includes('authToken')) {
-	// 	window.location.href = '/login';
-	// }
 </script>
 
 <svelte:head>

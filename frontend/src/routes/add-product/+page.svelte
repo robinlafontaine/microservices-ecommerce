@@ -1,5 +1,10 @@
+<svelte:head>
+	<title>Add Product</title>
+	<meta name="description" content="Add Product" />
+</svelte:head>
+
 <script>
-  import { useForm, validators, HintGroup, Hint, email, required } from "svelte-use-form";
+  import { useForm, validators, HintGroup, Hint, required } from "svelte-use-form";
   import { uploadImage, createProduct  } from '$lib/services/productService';
 
   const form = useForm();
