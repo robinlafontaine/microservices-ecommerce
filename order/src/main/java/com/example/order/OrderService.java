@@ -27,7 +27,10 @@ public class OrderService {
     }
 
     @Transactional
-    public PaymentResponse createOrder(Order order) throws Exception {
+    public PaymentResponse createOrder(Long orderId) throws Exception {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new PaymentException("Order not found with ID: " + orderId));
 
         boolean isAvailable = inventoryClient.checkStock(order.getItems());
         if (!isAvailable) {
@@ -39,17 +42,12 @@ public class OrderService {
             throw new InventoryException("Failed to reserve stock for one or more items.");
         }
 
-        for (OrderItem item : order.getItems()) {
-            item.setOrder(order);
-        }
-
         PaymentRequest paymentRequest = new PaymentRequest();
         paymentRequest.setOrderId(order.getId());
         paymentRequest.setAmount(order.getTotalAmount());
         paymentRequest.setCurrency("eur");
 
         try {
-            logger.info("Initiating payment for order: " + order.getId());
             PaymentResponse paymentResponse = paymentClient.initiatePayment(paymentRequest);
 
             if (paymentResponse.getStatus() != PaymentStatus.PENDING) {
@@ -58,7 +56,8 @@ public class OrderService {
             }
 
             order.setPaymentId(paymentResponse.getPaymentId());
-            logger.info("Order payment ID: " + order.getPaymentId());
+
+            logger.info("Order :" + order);
 
             orderRepository.save(order);
 

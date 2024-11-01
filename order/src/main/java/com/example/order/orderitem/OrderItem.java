@@ -17,13 +17,6 @@ public class OrderItem {
 
     private Long productId;
 
-    private Integer quantity;
+    private int quantity;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
-    @JsonIgnore
-    private Order order;
-
-    public OrderItem(Long productId, int quantity) {
-    }
 }

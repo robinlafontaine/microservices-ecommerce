@@ -40,26 +40,24 @@ public class OrderController {
         order.setTotalAmount(orderRequest.getTotalAmount());
         logger.info("OrderItems: " + orderRequest.getItems());
 
+
         List<OrderItem> orderItems = orderRequest.getItems().stream().map(item -> {
             OrderItem orderItem = new OrderItem();
             orderItem.setProductId(item.getProductId());
             orderItem.setQuantity(item.getQuantity());
-            orderItem.setOrder(order);
             return orderItem;
-        }).toList();
+        }).collect(Collectors.toList());
 
         order.setItems(orderItems);
 
         orderRepository.save(order);
 
-        logger.info("Order user id: " + order.getUserId());
-        logger.info("Order total amount: " + order.getTotalAmount());
-        logger.info("Order items: " + order.getItems());
+        Long orderId = order.getId();
 
-        PaymentResponse orderPayment = orderService.createOrder(order);
+        PaymentResponse orderPayment = orderService.createOrder(orderId);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(orderPayment);
     }
-
 
     @GetMapping
     public ResponseEntity<List<Order>> getOrders() {
