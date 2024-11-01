@@ -40,7 +40,7 @@ Refer to the file structure within the repository to understand the layout and o
 - **Configuration Management**: Spring Cloud Config
 - **Distributed Tracing**: Zipkin
 - **Monitoring & Health Checks**: Spring Boot Actuator
-- **Circuit Breaker**: Hystrix
+- **Payment Processor**: Stripe API
 
 ## Microservices Overview
 
@@ -82,7 +82,7 @@ docker-compose -f compose.yaml up --build
 
 ## Project Configuration
 - Environment Variables: The [ecommerce-config](https://github.com/robinlafontaine/ecommerce-config) repository stores the configurations for each service. Other variables are stored in the Docker Compose file.
-- Centralized Configurations:  The *config-service* (Spring Cloud Config) manages environment-specific configurations.
+- Centralized Configurations: The *config-service* (Spring Cloud Config) manages environment-specific configurations.
 - Database schemas are initialized via SQL scripts located in `databases/scripts`. These are automatically applied when the services start.\
 
 > [!NOTE]
@@ -92,6 +92,7 @@ docker-compose -f compose.yaml up --build
 > - `/databases/order`
 > - `/databases/payment`
 > - `/minio`
+> - Clear browser cookies for `localhost:3000`
 
 ## Improvements
 
@@ -118,4 +119,5 @@ There are several areas in this project that can be enhanced to further improve 
 5. **Enhanced Security**:
     - Implement **rate limiting** and **throttling** at the gateway level to prevent abuse and ensure fair resource use.
     - Use a secrets management tool to securely manage API keys and database credentials.
+    - Secure session cookies and session states.
 
