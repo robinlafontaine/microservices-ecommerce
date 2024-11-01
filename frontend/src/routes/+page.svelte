@@ -13,7 +13,7 @@
 
 <section>
 	<h1>
-		Boutique
+		Shop
 	</h1>
 
 	<ShopGrid />

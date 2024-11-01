@@ -6,5 +6,6 @@ export interface PaymentRequestDTO {
 
 export interface PaymentResponseDTO {
 	paymentId: string;
+	clientSecret: string;
 	status: string;
 }

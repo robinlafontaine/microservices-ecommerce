@@ -1,3 +1,8 @@
+<svelte:head>
+	<title>Shopping cart</title>
+	<meta name="description" content="Shopping cart" />
+</svelte:head>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getCart, addToCart } from '$lib/services/cartService';

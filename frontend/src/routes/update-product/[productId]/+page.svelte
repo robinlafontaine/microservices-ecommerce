@@ -1,3 +1,8 @@
+<svelte:head>
+	<title>Update product</title>
+	<meta name="description" content="Update product" />
+</svelte:head>
+
 <script lang="ts">
   import { useForm, validators, HintGroup, Hint, email, required } from "svelte-use-form";
   import { showProduct } from '$lib/services/productService';

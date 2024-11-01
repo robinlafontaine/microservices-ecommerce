@@ -41,7 +41,7 @@
 				shopping_cart
 				</span>
 		</a>
-		<a href="/login">
+		<a href="/profile">
 			<span class="material-symbols-outlined">
 				account_circle
 				</span>

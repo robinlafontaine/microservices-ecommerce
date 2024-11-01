@@ -1,19 +1,11 @@
 import { getCookie } from '$lib/utils/cookieUtils';
-import { getUserId } from './authService';
 import { getCart } from './cartService';
 import type { OrderItem } from '$lib/types/orderTypes';
 
 export async function createOrder(totalAmount: number) {
 	console.log('createOrder');
 	try {
-		const userIdResponse = await getUserId();
-		if (!userIdResponse.success) {
-			return userIdResponse;
-		}
-		const userId = userIdResponse.data;
-
 		let orderItems = [] as OrderItem[];
-
 		const cartItemsPromise = await getCart();
 		const cartItems = await Promise.all(cartItemsPromise);
 
@@ -24,8 +16,9 @@ export async function createOrder(totalAmount: number) {
 			});
 		});
 
+		console.log('orderItems', orderItems);
+
 		const orderData = {
-			userId: userId,
 			totalAmount: totalAmount,
 			items: orderItems
 		};

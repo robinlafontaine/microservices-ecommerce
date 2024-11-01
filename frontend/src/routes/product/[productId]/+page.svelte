@@ -1,3 +1,8 @@
+<svelte:head>
+	<title>Product</title>
+	<meta name="description" content="Product" />
+</svelte:head>
+
 <script lang="ts">
   import { deleteProduct } from '$lib/services/productService';
   import { showProducts, showProduct, checkAuth } from '$lib/services/productService';
