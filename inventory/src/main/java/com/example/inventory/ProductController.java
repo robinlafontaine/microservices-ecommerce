@@ -58,7 +58,7 @@ public class ProductController {
 
 
     // --- Update
-    @PutMapping("/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<Void> updateProduct(@PathVariable Long id, @RequestBody(required = false) ProductData productData) {
         if (productData == null) {
             return ResponseEntity.badRequest().body(null);
@@ -69,7 +69,7 @@ public class ProductController {
     }
 
     // --- Delete
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         logger.info("Deleting product: {}", id);
         try {
