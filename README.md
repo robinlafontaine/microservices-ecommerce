@@ -140,4 +140,8 @@ There are several areas in this project that can be enhanced to further improve 
     - Implement **rate limiting** and **throttling** at the gateway level to prevent abuse and ensure fair resource use.
     - Use a secrets management tool to securely manage API keys and database credentials.
     - Secure session cookies and session states.
+  
+## Team
+- Robin Lafontaine
+- Bastien Ubassy
 
