@@ -1,15 +1,14 @@
 package com.example.order.payment;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import java.math.BigDecimal;
-
-@Setter
-@Getter
+@Data
 public class PaymentResponse {
-    private Long paymentId;
-    private BigDecimal amount;
+
+    private String paymentId;
+
+    private String clientSecret;
+
     private PaymentStatus status;
 
 }

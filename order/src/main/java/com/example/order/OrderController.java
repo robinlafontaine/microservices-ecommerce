@@ -1,9 +1,17 @@
 package com.example.order;
 
+import com.example.order.auth.AuthClient;
+import com.example.order.dto.OrderRequestDTO;
+import com.example.order.orderitem.OrderItem;
+import com.example.order.payment.PaymentResponse;
+import feign.Headers;
+import org.springframework.data.domain.jaxb.SpringDataJaxb;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
@@ -11,15 +19,44 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final AuthClient authClient;
+    private final OrderRepository orderRepository;
 
-    public OrderController(OrderService orderService) {
+    Logger logger = Logger.getLogger(OrderController.class.getName());
+
+    public OrderController(OrderService orderService, AuthClient authClient, OrderRepository orderRepository) {
         this.orderService = orderService;
+        this.authClient = authClient;
+        this.orderRepository = orderRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) throws Exception {
-        Order createdOrder = orderService.createOrder(order);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
+    @PostMapping("/create")
+    public ResponseEntity<PaymentResponse> createOrder(
+            @RequestHeader("Authorization") String token,
+            @RequestBody OrderRequestDTO orderRequest) throws Exception {
+
+        Order order = new Order();
+        order.setUserId(authClient.getUserId(token));
+        order.setTotalAmount(orderRequest.getTotalAmount());
+        logger.info("OrderItems: " + orderRequest.getItems());
+
+
+        List<OrderItem> orderItems = orderRequest.getItems().stream().map(item -> {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(item.getProductId());
+            orderItem.setQuantity(item.getQuantity());
+            return orderItem;
+        }).collect(Collectors.toList());
+
+        order.setItems(orderItems);
+
+        orderRepository.save(order);
+
+        Long orderId = order.getId();
+
+        PaymentResponse orderPayment = orderService.createOrder(orderId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderPayment);
     }
 
     @GetMapping

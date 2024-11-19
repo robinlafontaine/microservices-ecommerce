@@ -1,9 +1,7 @@
 package com.example.order.payment;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -11,8 +9,8 @@ import java.math.BigDecimal;
 public interface PaymentClient {
 
     @PostMapping("/payments/initiate")
-    PaymentResponse initiatePayment(@RequestParam BigDecimal amount, @RequestParam Long orderId);
+    PaymentResponse initiatePayment(@RequestBody PaymentRequest paymentRequest);
 
-    @GetMapping("/payments/status")
-    PaymentStatus getPaymentStatus(@RequestParam Long paymentId);
+    @GetMapping("/payments/{paymentId}/status")
+    PaymentStatus getPaymentStatus(@PathVariable Long paymentId);
 }

@@ -1,6 +1,22 @@
 <script>
-	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { checkAuth } from '$lib/services/productService';
 	import logo from '$lib/images/logo.svg';
+
+	let _canManipulate = false;
+	let hasreload = false;
+
+	onMount(async () => {
+		const canManipulate = await checkAuth();
+				if (canManipulate.success) {
+					_canManipulate = true;
+					if (!hasreload) {
+						hasreload = true;
+					}
+				} else {
+					console.error('User cannot manipulate products');
+				}
+			});
 </script>
 
 <header>
@@ -17,12 +33,19 @@
 	</div>
 
 	<div class="corner right-corner">
-		<a href="/about">
+		{#if _canManipulate}
+			<a href="/add-product">
+				<span class="material-symbols-outlined">
+					add_circle
+				</span>
+			</a>
+		{/if}
+		<a href="/shopping-cart">
 			<span class="material-symbols-outlined">
 				shopping_cart
 				</span>
 		</a>
-		<a href="/sverdle">
+		<a href="/profile">
 			<span class="material-symbols-outlined">
 				account_circle
 				</span>

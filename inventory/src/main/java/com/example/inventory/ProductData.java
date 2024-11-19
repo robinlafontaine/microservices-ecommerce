@@ -1,7 +1,9 @@
 package com.example.inventory;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serial;
@@ -14,6 +16,8 @@ import java.math.BigDecimal;
  */
 @Setter
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class ProductData implements Serializable {
 
@@ -36,7 +40,4 @@ public class ProductData implements Serializable {
 
     private int stockQuantity;
 
-    public ProductData() {
-
-    }
 }

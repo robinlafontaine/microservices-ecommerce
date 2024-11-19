@@ -1,5 +1,6 @@
 package com.example.auth;
 
+import io.jsonwebtoken.Claims;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -76,6 +77,28 @@ public class AuthenticationController {
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during authentication");
         }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody UserRegisterDTO userRegister) {
+        if (!userDataRepository.findByEmail(userRegister.getEmail()).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
+        }
+
+        if (!isValidPassword(userRegister.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password does not meet security requirements");
+        }
+
+        UserData userData = new UserData();
+        userData.setFirstName(userRegister.getFirstName());
+        userData.setLastName(userRegister.getLastName());
+        userData.setEmail(userRegister.getEmail());
+        userData.setPasswordHash(passwordEncoder.encode(userRegister.getPassword()));
+        userData.setRole(Roles.USER);
+
+        userDataRepository.save(userData);
+
+        return ResponseEntity.ok("User registered successfully");
     }
 
     /**
@@ -230,6 +253,14 @@ public class AuthenticationController {
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+    }
+
+    @GetMapping("/user/id")
+    public ResponseEntity<Integer> getUserId(@RequestHeader String Authorization) {
+        String token = Authorization.substring(7);
+        String userEmail = jwtUtil.extractEmail(token);
+        Integer id = userDataRepository.findByEmail(userEmail).get(0).getId();
+        return ResponseEntity.ok(id);
     }
 
 }

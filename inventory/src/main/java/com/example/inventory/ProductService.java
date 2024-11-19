@@ -1,13 +1,13 @@
 package com.example.inventory;
 
+import com.example.inventory.orderItem.OrderItemDTO;
 import jakarta.persistence.EntityNotFoundException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -30,50 +30,43 @@ public class ProductService {
 
     // --- Read
     public List<ProductData> searchProducts(Long id, String name, Long categoryId, BigDecimal price, Boolean underPrice) {
+        List<ProductData> products = productDataRepository.findAll();
+
         // If there is no parameters, return all the products
         if (id == null && name == null && categoryId == null && price == null && underPrice == null) {
-            return productDataRepository.findAll();
+            return products;
         }
 
-        // Check for ID
         if (id != null) {
             ProductData product = productDataRepository.findById(id).orElse(null);
             return product != null ? List.of(product) : Collections.emptyList();
         }
 
-        Set<ProductData> products = new HashSet<>();
-
-        // Create a map of search criteria to their corresponding method references
-        Map<String, Supplier<List<ProductData>>> criteriaMap = getCriteriaMap(name, categoryId, price, underPrice);
-
-        // Collect results from all applicable criteria
-        for (Supplier<List<ProductData>> supplier : criteriaMap.values()) {
-            products.addAll(supplier.get());
-        }
-
-        return new ArrayList<>(products);
-    }
-
-    @NotNull
-    private Map<String, Supplier<List<ProductData>>> getCriteriaMap(String name, Long categoryId, BigDecimal price,Boolean underPrice) {
-        Map<String, Supplier<List<ProductData>>> criteriaMap = new HashMap<>();
-
         if (name != null) {
-            criteriaMap.put("name", () -> productDataRepository.findByProductName(name));
+            products = products.stream()
+                    .filter(product -> product.getProductName().equals(name))
+                    .collect(Collectors.toList());
         }
 
         if (categoryId != null) {
-            criteriaMap.put("categoryId", () -> productDataRepository.findByCategoryId(categoryId));
+            products = products.stream()
+                    .filter(product -> product.getCategoryId().equals(categoryId))
+                    .collect(Collectors.toList());
         }
 
         if (price != null) {
             if (underPrice != null && underPrice) {
-                criteriaMap.put("underPrice", () -> productDataRepository.findByPriceLessThan(price));
+                products = products.stream()
+                        .filter(product -> product.getPrice().compareTo(price) < 0) // Prix inférieur à "price"
+                        .collect(Collectors.toList());
             } else {
-                criteriaMap.put("exactPrice", () -> productDataRepository.findByPrice(price));
+                products = products.stream()
+                        .filter(product -> product.getPrice().compareTo(price) == 0) // Prix égal à "price"
+                        .collect(Collectors.toList());
             }
         }
-        return criteriaMap;
+
+        return products;
     }
 
     // --- Update
@@ -99,5 +92,53 @@ public class ProductService {
     // --- Delete
     public void deleteProduct(Long id) {
         productDataRepository.deleteById(id);
+    }
+
+    public Boolean checkStock(List<OrderItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+        return items.stream()
+                .allMatch(item -> {
+                    if (item == null || item.getProductId() == null) {
+                        return false;
+                    }
+                    ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+                    return product != null && product.getStockQuantity() >= item.getQuantity();
+                });
+    }
+
+    public Boolean reserveStock(List<OrderItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            return false;
+        }
+        return items.stream()
+                .allMatch(item -> {
+                    if (item == null || item.getProductId() == null) {
+                        return false;
+                    }
+                    ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+                    if (product == null || product.getStockQuantity() < item.getQuantity()) {
+                        return false;
+                    }
+                    product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+                    productDataRepository.save(product);
+                    return true;
+                });
+    }
+
+    public void freeStock(List<OrderItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        items.forEach(item -> {
+            if (item != null && item.getProductId() != null) {
+                ProductData product = productDataRepository.findById(item.getProductId()).orElse(null);
+                if (product != null) {
+                    product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+                    productDataRepository.save(product);
+                }
+            }
+        });
     }
 }

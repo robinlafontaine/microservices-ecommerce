@@ -1,13 +1,14 @@
 package com.example.order.orderitem;
 
 import com.example.order.Order;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Setter
-@Getter
+@Data
+@NoArgsConstructor
 @Entity
+@Table(name="order_items")
 public class OrderItem {
 
     @Id

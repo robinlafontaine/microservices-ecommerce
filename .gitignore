@@ -42,3 +42,26 @@ databases/*
 
 ### Minio ###
 minio/*
+
+### Frontend ###
+frontend/node_modules
+
+# Output
+frontend/.output
+frontend/.vercel
+frontend/.svelte-kit
+frontend/build
+
+# OS
+frontend/.DS_Store
+frontend/Thumbs.db
+
+# Env
+frontend/.env
+frontend/.env.*
+frontend/!.env.example
+frontend/!.env.test
+
+# Vite
+frontend/vite.config.js.timestamp-*
+frontend/vite.config.ts.timestamp-*

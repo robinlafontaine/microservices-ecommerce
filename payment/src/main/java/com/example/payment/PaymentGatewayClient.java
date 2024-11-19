@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @Component
 public class PaymentGatewayClient {
@@ -30,60 +31,46 @@ public class PaymentGatewayClient {
     }
 
     public PaymentResponseDTO processPayment(PaymentRequestDTO paymentRequest) {
+        validatePaymentRequest(paymentRequest);
+
         try {
-            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-                    .setAmount(paymentRequest.getAmount().multiply(BigDecimal.valueOf(100)).longValue()) // Amount in cents
-                    .setCurrency("usd")
-                    .setPaymentMethod(paymentRequest.getPaymentMethodId())
-                    .setDescription("Payment for Order ID: " + paymentRequest.getOrderId())
-                    //.setReturnUrl("https://your-site.com/payment-complete") //TODO : set return URL
-                    .setAutomaticPaymentMethods(PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                            .setEnabled(true)
-                            .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
-                            .build()) //TODO : remove this block to allow redirects
-                    .build();
+            PaymentIntentCreateParams params = createPaymentIntentParams(paymentRequest);
             PaymentIntent paymentIntent = PaymentIntent.create(params);
 
-            PaymentResponseDTO response = new PaymentResponseDTO();
-            response.setPaymentId(paymentIntent.getId());
-            response.setStatus(PaymentStatus.PENDING);
-
-            return response;
+            return buildPaymentResponse(paymentIntent);
         } catch (StripeException e) {
-            throw new PaymentException("Payment processing failed: " + e.getMessage());
+            throw new PaymentException("Stripe error occurred: " + e.getMessage());
         }
     }
 
-    public HashMap<Integer, String> confirmPayment(String paymentId) {
-        try {
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentId);
-            PaymentIntent confirmedPaymentIntent = paymentIntent.confirm();
-            HashMap<Integer, String> response = new HashMap<>();
-
-            if ("succeeded".equals(confirmedPaymentIntent.getStatus())) {
-                response.put(200, "Payment status: " + confirmedPaymentIntent.getStatus());
-            } else {
-                response.put(400, "Payment status: " + confirmedPaymentIntent.getStatus());
-            }
-            return response;
-        } catch (StripeException e) {
-            throw new RuntimeException("Error confirming payment: " + e.getMessage());
+    private void validatePaymentRequest(PaymentRequestDTO paymentRequest) {
+        if (paymentRequest.getAmount() == null || paymentRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than 0");
+        }
+        if (paymentRequest.getCurrency() == null || paymentRequest.getCurrency().isEmpty()) {
+            paymentRequest.setCurrency("eur");
         }
     }
 
-    public void handleWebhook(String payload, String sigHeader) {
-        String endpointSecret = "your_webhook_secret"; // Retrieve from Stripe
-
-        try {
-            Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-            if ("payment_intent.succeeded".equals(event.getType())) {
-                PaymentIntent intent = (PaymentIntent) event.getDataObjectDeserializer()
-                        .getObject().orElseThrow();
-                // Process the successful payment intent here
-            }
-        } catch (StripeException e) {
-            throw new PaymentException("Webhook error: " + e.getMessage());
-        }
+    private PaymentIntentCreateParams createPaymentIntentParams(PaymentRequestDTO paymentRequest) {
+        return PaymentIntentCreateParams.builder()
+                .setAmount(paymentRequest.getAmount().multiply(BigDecimal.valueOf(100)).longValue())
+                .setCurrency(paymentRequest.getCurrency())
+                .setDescription("Payment for Order ID: " + paymentRequest.getOrderId())
+                .setAutomaticPaymentMethods(PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                        .setEnabled(true)
+                        .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                        .build())
+                .build();
     }
+
+    private PaymentResponseDTO buildPaymentResponse(PaymentIntent paymentIntent) {
+        PaymentResponseDTO response = new PaymentResponseDTO();
+        response.setPaymentId(paymentIntent.getId());
+        response.setClientSecret(paymentIntent.getClientSecret());
+        response.setStatus(PaymentStatus.PENDING);
+        return response;
+    }
+
 }
 

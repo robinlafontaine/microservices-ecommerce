@@ -27,26 +27,11 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/webhook")
-    public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
-        try {
-            paymentService.handleStripeWebhook(payload, sigHeader);
-            return ResponseEntity.ok("Webhook handled successfully");
-        } catch (PaymentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
     @GetMapping("/{paymentId}/status")
     public ResponseEntity<String> getPaymentStatus(@PathVariable String paymentId) {
         String status = paymentService.getPaymentStatus(paymentId);
         return ResponseEntity.ok(status);
     }
 
-    @PostMapping("/confirm")
-    public ResponseEntity<String> confirmPayment(@RequestParam String paymentId) {
-        String status = paymentService.confirmPayment(paymentId);
-        return ResponseEntity.ok("Payment status: " + status);
-    }
 }
 
